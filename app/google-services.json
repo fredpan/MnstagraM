@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1006337194166",
+    "firebase_url": "https://mnstagram-fbc63.firebaseio.com",
+    "project_id": "mnstagram-fbc63",
+    "storage_bucket": "mnstagram-fbc63.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006337194166:android:edff2165f823a0a94e4e17",
+        "android_client_info": {
+          "package_name": "cn.fredpan.mnstagram"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1006337194166-273r9tnn2e7l68kukh6tvqp6mipkfrpq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cn.fredpan.mnstagram",
+            "certificate_hash": "6058de2841272fb5dea4672b16e2c9ba405d3393"
+          }
+        },
+        {
+          "client_id": "1006337194166-f836k86i335akil837k3jel1ekrffiep.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBO6nqMDuw-EgZvgoK2AOWxNalaKzRnoZU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1006337194166-f836k86i335akil837k3jel1ekrffiep.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
