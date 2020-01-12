@@ -9,6 +9,9 @@ public class User {
     private String bio;
     private String email;
 
+    public User() {
+    }
+
     public User(Bitmap avatar, String username, String bio, String email) {
         this.avatar = avatar;
         this.username = username;

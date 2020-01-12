@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,8 +18,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import cn.fredpan.mnstagram.R;
-import cn.fredpan.mnstagram.firebase.auth.Auth;
 import cn.fredpan.mnstagram.model.User;
 
 public class Registration extends AppCompatActivity {
@@ -33,11 +42,18 @@ public class Registration extends AppCompatActivity {
     Button addAvatarBtn;
     private static final int CAMERA_PERMISSION_CODE = 100;
     private static final int CAMERA_REQUEST = 1888;
+    private static FirebaseDatabase db;
+    private static DatabaseReference userDbRef;
+    private static FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.registration);
+
+        db = (db==null)? FirebaseDatabase.getInstance():db;
+        userDbRef = (userDbRef == null) ? db.getReference("users") : userDbRef;
+        mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
 
         //basic components
         emailView = (EditText) findViewById(R.id.email);
@@ -116,7 +132,7 @@ public class Registration extends AppCompatActivity {
 
                 //check password match
                 if (passwordMatch(password, passwordMatch)){
-                    Auth.registration(user, password, Registration.this);
+                    reg(user, password);
                 }else {
                     Toast.makeText(Registration.this, "Password you entered does not match", Toast.LENGTH_SHORT).show();
                 }
@@ -126,6 +142,30 @@ public class Registration extends AppCompatActivity {
 
     private boolean passwordMatch(String password, String passwordMatch) {
         return password.equals(passwordMatch);
+    }
+
+    private void reg(final User user, String password){
+        mAuth.createUserWithEmailAndPassword(user.getEmail(), password)
+                .addOnCompleteListener(Registration.this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update User table
+                            Log.d("REGISTRATION: ", "createUserWithEmail:success");
+                            FirebaseUser currUser = mAuth.getCurrentUser();
+                            assert currUser != null;
+                            //todo
+                            user.setAvatar(null);
+                            userDbRef.child(currUser.getUid()).setValue(user);
+//                            updateUI(user);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.d("REGISTRATION: ", "createUserWithEmail:failure", task.getException());
+                            Toast.makeText(Registration.this.getBaseContext(), "Unable to register, please try again.", Toast.LENGTH_SHORT).show();
+//                            activity.updateUI(null);
+                        }
+                    }
+                });
     }
 
 }
