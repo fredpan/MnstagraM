@@ -3,6 +3,7 @@ package cn.fredpan.mnstagram;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -51,9 +52,9 @@ public class Profile extends AppCompatActivity {
                             usernameView.setText(userDto.getUsername());
                             bioView.setText(userDto.getBio());
                         }
-                        Log.d("LOGIN: ", document.getId() + " => " + document.getData());
                     }
                 } else {
+                    Toast.makeText(Profile.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
                     Log.w("LOGIN: ", "Error getting documents.", task.getException());
                 }
             }

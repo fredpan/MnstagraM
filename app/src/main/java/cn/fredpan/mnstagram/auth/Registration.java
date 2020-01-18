@@ -8,7 +8,11 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,11 +23,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -43,8 +46,6 @@ public class Registration extends AppCompatActivity {
     Button addAvatarBtn;
     private static final int CAMERA_PERMISSION_CODE = 100;
     private static final int CAMERA_REQUEST = 1888;
-//    private static FirebaseDatabase db;
-//    private static DatabaseReference userDbRef;
     FirebaseFirestore userDb;
     private static FirebaseAuth mAuth;
 
@@ -54,8 +55,6 @@ public class Registration extends AppCompatActivity {
         setContentView(R.layout.registration);
 
         userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
-//        db = (db==null)? FirebaseDatabase.getInstance():db;
-//        userDbRef = (userDbRef == null) ? db.getReference("users") : userDbRef;
         mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
 
         //basic components
@@ -70,6 +69,65 @@ public class Registration extends AppCompatActivity {
 
         registration();
         addAvatarListener();
+        emailValidation();
+        passwordValidation();
+    }
+
+    private void passwordValidation() {
+        passwordMatchCheck();
+        passwordWeaknessCheck();
+    }
+
+    private void passwordWeaknessCheck() {
+        passwordView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    boolean isValidPassword = ((EditText) v).getText().toString().length() >= 6;
+                    if (!isValidPassword) {
+                        passwordView.setError(getString(R.string.error_weak_password));
+                    }
+                }
+            }
+        });
+    }
+
+    private void emailValidation(){
+        //used to update the email error hint state
+        emailFormatValidation();
+    }
+
+    private void emailFormatValidation() {
+        emailView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus){
+                    boolean isValidEmail = (!TextUtils.isEmpty(((EditText)v).getText().toString()) && Patterns.EMAIL_ADDRESS.matcher(((EditText)v).getText().toString()).matches());
+                    if (!isValidEmail){
+                        emailView.setError(getString(R.string.error_bad_email_addr_format));
+                    }
+                }
+            }
+        });
+    }
+
+    private void passwordMatchCheck() {
+        matchPasswordView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!passwordMatch(passwordView.getText().toString(), matchPasswordView.getText().toString())) {
+                    matchPasswordView.setError(getString(R.string.error_password_not_match));
+                }
+            }
+        });
     }
 
     private void addAvatarListener() {
@@ -98,15 +156,13 @@ public class Registration extends AppCompatActivity {
         {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
             {
-                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.camera_permisson_granted), Toast.LENGTH_LONG).show();
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
             }
             else
             {
-                System.out.println(grantResults[0]);
-                System.out.println(PackageManager.PERMISSION_GRANTED);
-                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.failed_grant_camera_permission), Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -124,20 +180,24 @@ public class Registration extends AppCompatActivity {
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = emailView.getText().toString();
-                String password = passwordView.getText().toString();
-                String passwordMatch = matchPasswordView.getText().toString();
-                String username = usernameView.getText().toString();
-                String bio = bioView.getText().toString();
-                Bitmap avatar = ((BitmapDrawable)avatarView.getDrawable()).getBitmap();
+                if (passwordView.getError()==null && matchPasswordView.getError()==null && emailView.getError()==null) {
+                    String email = emailView.getText().toString();
+                    String password = passwordView.getText().toString();
+                    String passwordMatch = matchPasswordView.getText().toString();
+                    String username = usernameView.getText().toString();
+                    String bio = bioView.getText().toString();
+                    Bitmap avatar = ((BitmapDrawable)avatarView.getDrawable()).getBitmap();
 
-                User user = new User(avatar, username, bio, email);
+                    User user = new User(avatar, username, bio, email);
 
-                //check password match
-                if (passwordMatch(password, passwordMatch)){
-                    reg(user, password);
-                }else {
-                    Toast.makeText(Registration.this, "Password you entered does not match", Toast.LENGTH_SHORT).show();
+                    register(user, password);
+                } else {
+                    int errorCtr = 0;
+                    errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
+                    errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
+                    errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
+                    String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
+                    Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -147,28 +207,35 @@ public class Registration extends AppCompatActivity {
         return password.equals(passwordMatch);
     }
 
-    private void reg(final User user, String password){
+    private void register(final User user, final String password){
         mAuth.createUserWithEmailAndPassword(user.getEmail(), password)
                 .addOnCompleteListener(Registration.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update User table
-                            Log.d("REGISTRATION: ", "createUserWithEmail:success");
                             FirebaseUser currUser = mAuth.getCurrentUser();
                             assert currUser != null;
                             //todo
                             user.setAvatar(null);
-                            Map<String, Object> userEntry = new HashMap<>();
-                            userEntry.put(currUser.getUid(), user.generateUserDto());
                             userDb.collection("users/").document(currUser.getUid()).set(user.generateUserDto());
-//                            userDbRef.child(currUser.getUid()).setValue(user);
-//                            updateUI(user);
                         } else {
-                            // If sign in fails, display a message to the user.
-                            Log.d("REGISTRATION: ", "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(Registration.this.getBaseContext(), "Unable to register, please try again.", Toast.LENGTH_SHORT).show();
-//                            activity.updateUI(null);
+                            // If sign up fails, display a message to the user.
+                            if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                                emailView.setError(getString(R.string.error_duplicated_email_registration));
+                            }else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                                //check for both the weak password and the invalid email again. Note here won't pop two exception if both invalid email and weak password.
+                                if (((FirebaseAuthInvalidCredentialsException) task.getException()).getErrorCode().equals("ERROR_WEAK_PASSWORD")){
+                                    passwordView.setError(getString(R.string.error_weak_password));
+                                }
+                                if (((FirebaseAuthInvalidCredentialsException) task.getException()).getErrorCode().equals("ERROR_INVALID_EMAIL")){
+                                    emailView.setError(getString(R.string.error_bad_email_addr_format));
+                                }
+                            }else {
+                                Log.d("REGISTRATION: ", "createUserWithEmail:failure", task.getException());
+                                Toast.makeText(Registration.this.getBaseContext(), getString(R.string.failed_registration), Toast.LENGTH_SHORT).show();
+                            }
+
                         }
                     }
                 });

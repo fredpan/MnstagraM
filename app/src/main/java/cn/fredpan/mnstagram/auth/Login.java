@@ -2,20 +2,18 @@ package cn.fredpan.mnstagram.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import cn.fredpan.mnstagram.Profile;
 import cn.fredpan.mnstagram.R;
 
@@ -56,13 +54,11 @@ public class Login extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     // Sign in success, update UI with the signed-in user's information
-                                    Log.d("SIGNIN: ", "signInWithEmail:success");
                                     Intent profileActivity = new Intent(Login.this, Profile.class);
                                     Login.this.startActivity(profileActivity);
                                 } else {
-                                    // If sign in fails, display a message to the user.
-                                    Log.d("SIGNIN: ", "signInWithEmail:failure", task.getException());
-                                    Toast.makeText(Login.this, "Authentication failed. Password or Username incorrect!",
+                                    // If sign in fails, display a message to the used.
+                                    Toast.makeText(Login.this, getString(R.string.failed_auth_login),
                                             Toast.LENGTH_SHORT).show();
                                 }
                             }
