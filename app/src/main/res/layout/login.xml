@@ -10,7 +10,8 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="textEmailAddress"
-        android:text="Email@Email.com" />
+        android:hint="Email"
+        android:text="fredpan@erao.tech"/>
 
     <EditText
         android:id="@+id/password"
@@ -18,17 +19,27 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="textPassword"
-        android:text="Password" />
+        android:hint="Password"
+        android:text="123qwe"/>
 
     <Button
         android:id="@+id/sign_in"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Sign In" />
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Don't have an account?"/>
     <Button
         android:id="@+id/sign_up"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Sign Up" />
+</LinearLayout>
+
 </LinearLayout>

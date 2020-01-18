@@ -14,7 +14,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import cn.fredpan.mnstagram.Profile;
+import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 
 public class Login extends AppCompatActivity {
@@ -38,8 +38,18 @@ public class Login extends AppCompatActivity {
         logInBtn = (Button) findViewById(R.id.sign_in);
         signUpBtn = (Button) findViewById(R.id.sign_up);
 
+        loginDirectly();
+
         logInListener();
         signUpRedirectionListener();
+    }
+
+    private void loginDirectly() {
+        if (mAuth.getCurrentUser() != null) {
+            System.out.println(mAuth.getCurrentUser().getEmail());
+            Intent profileActivity = new Intent(Login.this, MainActivity.class);
+            Login.this.startActivity(profileActivity);
+        }
     }
 
     private void logInListener() {
@@ -54,7 +64,7 @@ public class Login extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     // Sign in success, update UI with the signed-in user's information
-                                    Intent profileActivity = new Intent(Login.this, Profile.class);
+                                    Intent profileActivity = new Intent(Login.this, MainActivity.class);
                                     Login.this.startActivity(profileActivity);
                                 } else {
                                     // If sign in fails, display a message to the used.

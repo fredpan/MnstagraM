@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/profile_page">
+
+    <fragment
+        android:id="@+id/profile_page"
+        android:name="cn.fredpan.mnstagram.fragment.Profile"
+        android:label="profile"
+        tools:layout="@layout/profile" />
+
+<!--    Don't direct to login page from here as I need a popup to confirm and need to clean the auth-->
+<!--    <activity-->
+<!--        android:id="@+id/logout"-->
+<!--        android:name="cn.fredpan.mnstagram.auth.Login"-->
+<!--        android:label="profile"-->
+<!--        tools:layout="@layout/profile" />-->
+</navigation>
