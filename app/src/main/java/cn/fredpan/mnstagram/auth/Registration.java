@@ -15,18 +15,19 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.User;
 
@@ -42,8 +43,9 @@ public class Registration extends AppCompatActivity {
     Button addAvatarBtn;
     private static final int CAMERA_PERMISSION_CODE = 100;
     private static final int CAMERA_REQUEST = 1888;
-    private static FirebaseDatabase db;
-    private static DatabaseReference userDbRef;
+//    private static FirebaseDatabase db;
+//    private static DatabaseReference userDbRef;
+    FirebaseFirestore userDb;
     private static FirebaseAuth mAuth;
 
     @Override
@@ -51,8 +53,9 @@ public class Registration extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.registration);
 
-        db = (db==null)? FirebaseDatabase.getInstance():db;
-        userDbRef = (userDbRef == null) ? db.getReference("users") : userDbRef;
+        userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
+//        db = (db==null)? FirebaseDatabase.getInstance():db;
+//        userDbRef = (userDbRef == null) ? db.getReference("users") : userDbRef;
         mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
 
         //basic components
@@ -156,7 +159,10 @@ public class Registration extends AppCompatActivity {
                             assert currUser != null;
                             //todo
                             user.setAvatar(null);
-                            userDbRef.child(currUser.getUid()).setValue(user);
+                            Map<String, Object> userEntry = new HashMap<>();
+                            userEntry.put(currUser.getUid(), user.generateUserDto());
+                            userDb.collection("users/").document(currUser.getUid()).set(user.generateUserDto());
+//                            userDbRef.child(currUser.getUid()).setValue(user);
 //                            updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.

@@ -3,8 +3,8 @@ package cn.fredpan.mnstagram.model;
 import android.graphics.Bitmap;
 
 public class User {
-    private Bitmap avatar;
     private String uid;
+    private Bitmap avatar;
     private String username;
     private String bio;
     private String email;
@@ -65,5 +65,9 @@ public class User {
 
     public void setAvatar(Bitmap avatar) {
         this.avatar = avatar;
+    }
+
+    public UserDto generateUserDto(){
+        return new UserDto(this.username, this.bio, this.uid+"/displayPic.jpg");
     }
 }
