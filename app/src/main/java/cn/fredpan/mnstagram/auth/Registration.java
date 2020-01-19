@@ -221,7 +221,7 @@ public class Registration extends AppCompatActivity {
                         passwordView.setError(getString(R.string.error_weak_password));
                         hasError = true;
                     }
-                    boolean isValidEmail = (!TextUtils.isEmpty(emailView.getText().toString()) && Patterns.EMAIL_ADDRESS.matcher(((EditText)v).getText().toString()).matches());
+                    boolean isValidEmail = (!TextUtils.isEmpty(emailView.getText().toString()) && Patterns.EMAIL_ADDRESS.matcher(emailView.getText().toString()).matches());
                     if (!isValidEmail){
                         emailView.setError(getString(R.string.error_bad_email_addr_format));
                         hasError = true;
