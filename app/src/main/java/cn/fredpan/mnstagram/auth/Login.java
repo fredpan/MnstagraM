@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,7 +30,7 @@ public class Login extends AppCompatActivity {
     EditText emailView;
     EditText passwordView;
     Button logInBtn;
-    Button signUpBtn;
+    TextView signUpBtn;
     private static FirebaseAuth mAuth;
     FirebaseFirestore userDb;
 
@@ -45,7 +46,7 @@ public class Login extends AppCompatActivity {
         emailView = (EditText) findViewById(R.id.email);
         passwordView = (EditText) findViewById(R.id.password);
         logInBtn = (Button) findViewById(R.id.sign_in);
-        signUpBtn = (Button) findViewById(R.id.sign_up);
+        signUpBtn = (TextView) findViewById(R.id.sign_up);
 
         loginDirectly();
 

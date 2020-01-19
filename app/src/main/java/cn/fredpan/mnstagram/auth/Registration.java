@@ -187,10 +187,36 @@ public class Registration extends AppCompatActivity {
                     String username = usernameView.getText().toString();
                     String bio = bioView.getText().toString();
                     Bitmap avatar = ((BitmapDrawable)avatarView.getDrawable()).getBitmap();
-
                     User user = new User(avatar, username, bio, email);
 
-                    register(user, password);
+                    //Final checks
+                    boolean hasError = false;
+                    if (!passwordMatch(passwordView.getText().toString(), matchPasswordView.getText().toString())) {
+                        matchPasswordView.setError(getString(R.string.error_password_not_match));
+                        hasError = true;
+                    }
+                    boolean isValidPassword = passwordView.getText().toString().length() >= 6;
+                    if (!isValidPassword) {
+                        passwordView.setError(getString(R.string.error_weak_password));
+                        hasError = true;
+                    }
+                    boolean isValidEmail = (!TextUtils.isEmpty(emailView.getText().toString()) && Patterns.EMAIL_ADDRESS.matcher(((EditText)v).getText().toString()).matches());
+                    if (!isValidEmail){
+                        emailView.setError(getString(R.string.error_bad_email_addr_format));
+                        hasError = true;
+                    }
+                    if (usernameView.getText().toString().length() <= 0) {
+                        usernameView.setError(getString(R.string.error_empty_username));
+                        hasError = true;
+                    }
+                    if (bioView.getText().toString().length() <= 0) {
+                        bioView.setError(getString(R.string.error_empty_bio));
+                        hasError = true;
+                    }
+
+                    if(!hasError){
+                        register(user, password);
+                    }
                 } else {
                     int errorCtr = 0;
                     errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;

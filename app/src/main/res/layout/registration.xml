@@ -6,7 +6,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:padding="11pt">
         <ImageView
             android:id="@+id/avatar"
             android:layout_width="250px"
@@ -16,52 +17,81 @@
 
 
         <Button
+            android:layout_marginLeft="18pt"
+            android:layout_gravity="center"
+            android:paddingLeft="11pt"
+            android:paddingRight="11pt"
+            android:background="@drawable/curved_btn"
             android:id="@+id/add_avatar"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Set Display Picture"/>
     </LinearLayout>
 
 
-    <EditText
-        android:id="@+id/email"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textEmailAddress"
-        android:hint="Please set your email address"/>
-    <EditText
-        android:id="@+id/password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPassword"
-        android:hint="Please set your password"/>
-    <EditText
-        android:id="@+id/matchPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPassword"
-        android:hint="Please reenter your password" />
-    <EditText
-        android:id="@+id/username"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:hint="Please ser your username" />
-    <EditText
-        android:id="@+id/bio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="text"
-        android:hint="Please write a short bio" />
+        android:orientation="vertical"
+        android:paddingLeft="8pt"
+        android:paddingRight="8pt"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="11pt">
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="11pt"/>
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPassword"
+            android:hint="Password"
+            android:layout_marginBottom="11pt"/>
+
+        <EditText
+            android:id="@+id/matchPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPassword"
+            android:hint="Reenter password"
+            android:layout_marginBottom="11pt"/>
+
+        <EditText
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:hint="Username"
+            android:layout_marginBottom="11pt"/>
+
+        <EditText
+            android:id="@+id/bio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="text"
+            android:hint="A short bio"
+            android:layout_marginBottom="11pt"/>
+
+    </LinearLayout>
+
 
     <Button
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/curved_btn"
         android:id="@+id/register_btn"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingLeft="11pt"
+        android:paddingRight="11pt"
         android:text="Sign Up" />
 </LinearLayout>

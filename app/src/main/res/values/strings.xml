@@ -3,12 +3,14 @@
 
 <!--    Success hint-->
     <string name="camera_permisson_granted">camera permission granted</string>
+    <string name="wait_for_retrieving_account">Please wait while we are retrieving your account.</string>
 
 <!--    Failure hint-->
     <string name="failed_grant_camera_permission">camera permission denied</string>
     <string name="failed_retrieving_users_collection">Oops, service temporary unavailable. Please try again later.</string>
     <string name="failed_auth_login">Oops… Password or Username incorrect!</string>
     <string name="failed_registration">Unable to register, please try again.</string>
+    <string name="failed_loading_logged_in_user_info_relogin_required">Oops, auth failed, please re-login again.</string>
 
 <!--    Error hint-->
     <string name="error_password_not_match">Password you entered does not match</string>
@@ -17,6 +19,8 @@
     <string name="error_bad_email_addr_format">Invalid Email address format. Please check your input</string>
     <string name="error_unfixed_before_register_singular">Please first fix errors above.</string>
     <string name="error_unfixed_before_register_plural">Please first fix error above.</string>
-    <string name="wait_for_retrieving_account">Please wait while we are retrieving your account.</string>
+    <string name="error_empty_username">Username cannot be empty</string>
+    <string name="error_empty_bio">Bio cannot be empty</string>
+
 
 </resources>

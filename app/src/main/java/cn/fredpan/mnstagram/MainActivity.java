@@ -59,10 +59,13 @@ public class MainActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             user = (User) getIntent().getSerializableExtra("user"); //Obtaining data
+            init();
         } else {
             retrieveCurrentLoginUserDataFromDb();
         }
+    }
 
+    private void init() {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -86,17 +89,13 @@ public class MainActivity extends AppCompatActivity {
         navUsername = navHeaderView.findViewById(R.id.nav_username);
 
         displayUserInfo();
-
         logoutListener();
-
     }
 
     private void retrieveCurrentLoginUserDataFromDb() {
-        Thread t = new Thread() {
-            public void run() {
                 // shouldn't be here
                 if (mAuth.getCurrentUser() == null) {
-                    Toast.makeText(MainActivity.this, "Oops, auth failed, please re-login again.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, getString(R.string.failed_loading_logged_in_user_info_relogin_required), Toast.LENGTH_LONG).show();
                     signOut();
                     throw new IllegalStateException("Accessed to the MainActivity while not login or the current user info cannot be found on mAuth.");
                 } else {
@@ -115,18 +114,13 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
                                 Log.w("LOGIN: ", "Error getting documents.", task.getException());
                             }
+                            init();
                         }
                     });
                 }
             }
-        };
-        t.start();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+
+
 
     private void displayUserInfo() {
         navUsername.setText(user.getUsername());

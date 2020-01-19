@@ -1,45 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
 
-    <EditText
-        android:id="@+id/email"
+    <ImageView
+        android:layout_marginTop="21pt"
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textEmailAddress"
-        android:hint="Email"
-        android:text="fredpan@erao.tech"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:srcCompat="@drawable/logo_mstagram" />
 
-    <EditText
-        android:id="@+id/password"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPassword"
-        android:hint="Password"
-        android:text="123qwe"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:paddingLeft="8pt"
+        android:paddingRight="8pt">
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textEmailAddress"
+            android:hint="Email"
+            android:text="fredpan@erao.tech"/>
 
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPassword"
+            android:hint="Password"
+            android:text="123qwe"/>
+    </LinearLayout>
     <Button
         android:id="@+id/sign_in"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Sign In" />
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
-    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Don't have an account?"/>
-    <Button
-        android:id="@+id/sign_up"
+        android:text="Sign In"
+        android:background="@drawable/curved_btn"
+        android:layout_margin="21pt"
+        android:layout_gravity="center_horizontal"/>
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="11pt"
+    android:layout_marginLeft="11pt"
+    android:layout_marginRight="11pt"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:layout_gravity="center">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:text="Don't have an account? "/>
+        <TextView
+            style="@android:style/Widget.TextView"
+            android:id="@+id/sign_up"
+            android:textColor="#000080"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=" Sign Up" />
+</LinearLayout>
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sign Up" />
-</LinearLayout>
+        android:textColor="#D3D3D3"
+        android:gravity="center"
+        android:layout_marginBottom="7pt"
+        android:text="Developed by Liren Pan"/>
+
 
 </LinearLayout>
