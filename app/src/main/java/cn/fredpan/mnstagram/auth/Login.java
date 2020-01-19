@@ -1,3 +1,32 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2020 Liren Pan (https://github.com/fredpan)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * 1) Enjoy your coding
+ * 2) Have a nice day
+ * 3) Be happy
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 package cn.fredpan.mnstagram.auth;
 
 import android.content.Intent;
@@ -43,10 +72,10 @@ public class Login extends AppCompatActivity {
         userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
 
         //basic components
-        emailView = (EditText) findViewById(R.id.email);
-        passwordView = (EditText) findViewById(R.id.password);
-        logInBtn = (Button) findViewById(R.id.sign_in);
-        signUpBtn = (TextView) findViewById(R.id.sign_up);
+        emailView = findViewById(R.id.email);
+        passwordView = findViewById(R.id.password);
+        logInBtn = findViewById(R.id.sign_in);
+        signUpBtn = findViewById(R.id.sign_up);
 
         loginDirectly();
 

@@ -1,3 +1,32 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2020 Liren Pan (https://github.com/fredpan)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * 1) Enjoy your coding
+ * 2) Have a nice day
+ * 3) Be happy
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 package cn.fredpan.mnstagram.auth;
 
 import android.Manifest;
@@ -58,14 +87,14 @@ public class Registration extends AppCompatActivity {
         mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
 
         //basic components
-        emailView = (EditText) findViewById(R.id.email);
-        passwordView = (EditText) findViewById(R.id.password);
-        matchPasswordView = (EditText) findViewById(R.id.matchPassword);
-        usernameView = (EditText) findViewById(R.id.username);
-        bioView = (EditText) findViewById(R.id.bio);
-        avatarView = (ImageView) findViewById(R.id.avatar);
-        registerBtn = (Button) findViewById(R.id.register_btn);
-        addAvatarBtn = (Button) findViewById(R.id.add_avatar);
+        emailView = findViewById(R.id.email);
+        passwordView = findViewById(R.id.password);
+        matchPasswordView = findViewById(R.id.matchPassword);
+        usernameView = findViewById(R.id.username);
+        bioView = findViewById(R.id.bio);
+        avatarView = findViewById(R.id.avatar);
+        registerBtn = findViewById(R.id.register_btn);
+        addAvatarBtn = findViewById(R.id.add_avatar);
 
         registration();
         addAvatarListener();
@@ -135,12 +164,9 @@ public class Registration extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v) {
-                if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-                {
+                if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-                }
-                else
-                {
+                } else {
                     Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                     startActivityForResult(cameraIntent, CAMERA_REQUEST);
                 }
@@ -149,19 +175,14 @@ public class Registration extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_CODE)
-        {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            {
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, getString(R.string.camera_permisson_granted), Toast.LENGTH_LONG).show();
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
-            }
-            else
-            {
+            } else {
                 Toast.makeText(this, getString(R.string.failed_grant_camera_permission), Toast.LENGTH_LONG).show();
             }
         }

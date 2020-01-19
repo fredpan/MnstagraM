@@ -1,3 +1,32 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2020 Liren Pan (https://github.com/fredpan)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * 1) Enjoy your coding
+ * 2) Have a nice day
+ * 3) Be happy
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 package cn.fredpan.mnstagram;
 
 import android.content.DialogInterface;
@@ -93,33 +122,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void retrieveCurrentLoginUserDataFromDb() {
-                // shouldn't be here
-                if (mAuth.getCurrentUser() == null) {
-                    Toast.makeText(MainActivity.this, getString(R.string.failed_loading_logged_in_user_info_relogin_required), Toast.LENGTH_LONG).show();
-                    signOut();
-                    throw new IllegalStateException("Accessed to the MainActivity while not login or the current user info cannot be found on mAuth.");
-                } else {
-                    userDb.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    if (document.getId().equals(currUser.getUid())) {
-                                        UserDto userDto = document.toObject(UserDto.class);
-                                        user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
-                                    }
-                                }
-                            } else {
-                                Toast.makeText(MainActivity.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
-                                Log.w("LOGIN: ", "Error getting documents.", task.getException());
+        // shouldn't be here
+        if (mAuth.getCurrentUser() == null) {
+            Toast.makeText(MainActivity.this, getString(R.string.failed_loading_logged_in_user_info_relogin_required), Toast.LENGTH_LONG).show();
+            signOut();
+            throw new IllegalStateException("Accessed to the MainActivity while not login or the current user info cannot be found on mAuth.");
+        } else {
+            userDb.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    if (task.isSuccessful()) {
+                        FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if (document.getId().equals(currUser.getUid())) {
+                                UserDto userDto = document.toObject(UserDto.class);
+                                user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
                             }
-                            init();
                         }
-                    });
+                    } else {
+                        Toast.makeText(MainActivity.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
+                        Log.w("LOGIN: ", "Error getting documents.", task.getException());
+                    }
+                    init();
                 }
-            }
-
+            });
+        }
+    }
 
 
     private void displayUserInfo() {
