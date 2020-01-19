@@ -17,5 +17,6 @@
     <string name="error_bad_email_addr_format">Invalid Email address format. Please check your input</string>
     <string name="error_unfixed_before_register_singular">Please first fix errors above.</string>
     <string name="error_unfixed_before_register_plural">Please first fix error above.</string>
+    <string name="wait_for_retrieving_account">Please wait while we are retrieving your account.</string>
 
 </resources>

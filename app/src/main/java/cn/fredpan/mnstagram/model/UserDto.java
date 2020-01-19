@@ -2,7 +2,9 @@ package cn.fredpan.mnstagram.model;
 
 import android.graphics.Bitmap;
 
-public class UserDto {
+import java.io.Serializable;
+
+public class UserDto implements Serializable {
     private String username;
     private String bio;
     private String displayPicPath;

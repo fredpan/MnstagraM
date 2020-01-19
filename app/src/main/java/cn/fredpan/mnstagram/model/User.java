@@ -2,7 +2,9 @@ package cn.fredpan.mnstagram.model;
 
 import android.graphics.Bitmap;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private String uid;
     private Bitmap avatar;
     private String username;
