@@ -103,6 +103,7 @@ public class Login extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     // Sign in success, update UI with the signed-in user's information
+                                    //todo change to userDb.collection("users").get(FirebaseAuth.getInstance().getCurrentUser().getUid());
                                     userDb.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                         @Override
                                         public void onComplete(@NonNull Task<QuerySnapshot> task) {
