@@ -34,7 +34,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/profile_page"
-            android:icon="@drawable/ic_menu_camera"
+            android:icon="@drawable/ic_contact_24"
             android:title="Profile" />
     </group>
 
@@ -42,7 +42,7 @@
         <menu>
             <item
                 android:id="@+id/logout"
-                android:icon="@drawable/ic_menu_share"
+                android:icon="@drawable/ic_exit_24"
                 android:title="Logout" />
         </menu>
     </item>
