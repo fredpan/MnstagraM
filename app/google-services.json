@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1006337194166-bb7m8u7tkhm8l0vmc1otl0mipr30a0ef.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cn.fredpan.mnstagram",
+            "certificate_hash": "f83ab387f27a016a4442443352a1ee3ae9c22a0a"
+          }
+        },
+        {
           "client_id": "1006337194166-273r9tnn2e7l68kukh6tvqp6mipkfrpq.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

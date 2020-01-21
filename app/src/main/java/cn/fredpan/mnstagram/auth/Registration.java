@@ -60,6 +60,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.User;
 
@@ -263,9 +265,22 @@ public class Registration extends AppCompatActivity {
                             // Sign in success, update User table
                             FirebaseUser currUser = mAuth.getCurrentUser();
                             assert currUser != null;
-                            //todo
+                            //todo avatar
                             user.setAvatar(null);
                             userDb.collection("users/").document(currUser.getUid()).set(user.generateUserDto());
+                            //recheck if is logged in
+                            FirebaseUser currTempUser = FirebaseAuth.getInstance().getCurrentUser();
+                            if (currTempUser != null && currTempUser.getEmail() != null && currTempUser.getEmail().equals(user.getEmail())) {
+                                Intent mainActivity = new Intent(Registration.this, MainActivity.class);
+                                mainActivity.putExtra("user", user);
+                                Registration.this.startActivity(mainActivity);
+                            }else {
+                                // shouldn't go to here as the createUserWithEmailAndPassword also auto sign in
+                                Log.d("REGISTRATION: ", "Registered without auto login. Check with FirebaseAuth or the Internet connection.");
+                                Intent loginActivity = new Intent(Registration.this, Login.class);
+                                loginActivity.putExtra("user", user);
+                                Registration.this.startActivity(loginActivity);
+                            }
                         } else {
                             // If sign up fails, display a message to the user.
                             if (task.getException() instanceof FirebaseAuthUserCollisionException) {

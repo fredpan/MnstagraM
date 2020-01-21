@@ -111,6 +111,7 @@ public class Login extends AppCompatActivity {
                                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                                     if (document.getId().equals(currUser.getUid())) {
                                                         UserDto userDto = document.toObject(UserDto.class);
+                                                        //todo avatar
                                                         User user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
                                                         Intent mainActivity = new Intent(Login.this, MainActivity.class);
                                                         mainActivity.putExtra("user", user);
