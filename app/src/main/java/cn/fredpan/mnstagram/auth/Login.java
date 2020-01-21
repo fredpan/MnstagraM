@@ -132,6 +132,12 @@ public class Login extends AppCompatActivity {
                 String email = emailView.getText().toString();
                 //check email input format
                 if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || passwordView.getText().toString().length() < 6) {
+                    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailView.setError(getString(R.string.error_bad_email_addr_format));
+                    }
+                    if (passwordView.getText().toString().length() < 6) {
+                        passwordView.setError(getString(R.string.error_password_length_too_short));
+                    }
                     progressBar.setVisibility(View.INVISIBLE);
                     Toast.makeText(Login.this, getString(R.string.failed_auth_login),
                             Toast.LENGTH_SHORT).show();
