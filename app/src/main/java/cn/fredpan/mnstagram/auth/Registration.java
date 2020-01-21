@@ -244,17 +244,17 @@ public class Registration extends AppCompatActivity {
                     if(!hasError){
                         register(user, password);
                     }
+                } else {
+                    progressBar.setVisibility(View.INVISIBLE);
+                    int errorCtr = 0;
+                    errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
+                    errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
+                    errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
+                    errorCtr = (usernameView.getError() == null)? errorCtr : errorCtr+1;
+                    errorCtr = (bioView.getError() == null)? errorCtr : errorCtr+1;
+                    String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
+                    Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
                 }
-                progressBar.setVisibility(View.INVISIBLE);
-                int errorCtr = 0;
-                errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
-                errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
-                errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
-                errorCtr = (usernameView.getError() == null)? errorCtr : errorCtr+1;
-                errorCtr = (bioView.getError() == null)? errorCtr : errorCtr+1;
-                String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
-                Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
-
             }
         });
     }
@@ -290,6 +290,7 @@ public class Registration extends AppCompatActivity {
                                 Registration.this.startActivity(loginActivity);
                             }
                         } else {
+                            progressBar.setVisibility(View.INVISIBLE);
                             // If sign up fails, display a message to the user.
                             if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                                 emailView.setError(getString(R.string.error_duplicated_email_registration));
