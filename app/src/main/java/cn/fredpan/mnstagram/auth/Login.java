@@ -32,9 +32,11 @@ package cn.fredpan.mnstagram.auth;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,6 +62,7 @@ public class Login extends AppCompatActivity {
     EditText passwordView;
     Button logInBtn;
     TextView signUpBtn;
+    ProgressBar progressBar;
     private static FirebaseAuth mAuth;
     FirebaseFirestore userDb;
 
@@ -76,16 +79,46 @@ public class Login extends AppCompatActivity {
         passwordView = findViewById(R.id.password);
         logInBtn = findViewById(R.id.sign_in);
         signUpBtn = findViewById(R.id.sign_up);
+        progressBar = findViewById(R.id.progress_bar);
 
         loginDirectly();
 
         logInListener();
         signUpRedirectionListener();
+        emailFormatCheckListener();
+        passwordLengthCheckListener();
+    }
+
+    private void passwordLengthCheckListener() {
+        passwordView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (!hasFocus) {
+                    if (passwordView.getText().toString().length()<6) {
+                        passwordView.setError(getString(R.string.error_password_length_too_short));
+                        progressBar.setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+        });
+    }
+
+    private void emailFormatCheckListener() {
+        emailView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (!hasFocus) {
+                    if (!Patterns.EMAIL_ADDRESS.matcher(emailView.getText().toString()).matches()) {
+                        emailView.setError(getString(R.string.error_bad_email_addr_format));
+                        progressBar.setVisibility(View.INVISIBLE);
+                    }
+                }
+            }
+        });
     }
 
     private void loginDirectly() {
         if (mAuth.getCurrentUser() != null) {
-            System.out.println(mAuth.getCurrentUser().getEmail());
             Intent profileActivity = new Intent(Login.this, MainActivity.class);
             Login.this.startActivity(profileActivity);
         }
@@ -95,42 +128,52 @@ public class Login extends AppCompatActivity {
         logInBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                progressBar.setVisibility(View.VISIBLE);
                 String email = emailView.getText().toString();
-                String password = passwordView.getText().toString();
-                mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    // Sign in success, update UI with the signed-in user's information
-                                    userDb.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                            if (task.isSuccessful()) {
-                                                FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
-                                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                                    if (document.getId().equals(currUser.getUid())) {
-                                                        UserDto userDto = document.toObject(UserDto.class);
-                                                        //todo avatar
-                                                        User user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
-                                                        Intent mainActivity = new Intent(Login.this, MainActivity.class);
-                                                        mainActivity.putExtra("user", user);
-                                                        Login.this.startActivity(mainActivity);
+                //check email input format
+                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || passwordView.getText().toString().length() < 6) {
+                    progressBar.setVisibility(View.INVISIBLE);
+                    Toast.makeText(Login.this, getString(R.string.failed_auth_login),
+                            Toast.LENGTH_SHORT).show();
+                }else {
+                    String password = passwordView.getText().toString();
+                    mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if (task.isSuccessful()) {
+                                        // Sign in success, update UI with the signed-in user's information
+                                        userDb.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                                if (task.isSuccessful()) {
+                                                    FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
+                                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                                        if (document.getId().equals(currUser.getUid())) {
+                                                            UserDto userDto = document.toObject(UserDto.class);
+                                                            //todo avatar
+                                                            User user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
+                                                            Intent mainActivity = new Intent(Login.this, MainActivity.class);
+                                                            mainActivity.putExtra("user", user);
+                                                            progressBar.setVisibility(View.INVISIBLE);
+                                                            Login.this.startActivity(mainActivity);
+                                                        }
                                                     }
+                                                } else {
+                                                    progressBar.setVisibility(View.INVISIBLE);
+                                                    Toast.makeText(Login.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
+                                                    Log.w("LOGIN: ", "Error getting documents.", task.getException());
                                                 }
-                                            } else {
-                                                Toast.makeText(Login.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
-                                                Log.w("LOGIN: ", "Error getting documents.", task.getException());
                                             }
-                                        }
-                                    });
-                                } else {
-                                    // If sign in fails, display a message to the used.
-                                    Toast.makeText(Login.this, getString(R.string.failed_auth_login),
-                                            Toast.LENGTH_SHORT).show();
+                                        });
+                                    } else {
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        // If sign in fails, display a message to the used.
+                                        Toast.makeText(Login.this, getString(R.string.failed_auth_login),
+                                                Toast.LENGTH_SHORT).show();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                }
             }
         });
     }

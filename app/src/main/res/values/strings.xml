@@ -37,7 +37,7 @@
     <!--    Failure hint-->
     <string name="failed_grant_camera_permission">camera permission denied</string>
     <string name="failed_retrieving_users_collection">Oops, service temporary unavailable. Please try again later.</string>
-    <string name="failed_auth_login">Oops… Password or Username incorrect!</string>
+    <string name="failed_auth_login">Oops, password or username incorrect!</string>
     <string name="failed_registration">Unable to register, please try again.</string>
     <string name="failed_loading_logged_in_user_info_relogin_required">Oops, auth failed, please re-login again.</string>
 
@@ -45,11 +45,12 @@
     <string name="error_password_not_match">Password you entered does not match</string>
     <string name="error_duplicated_email_registration">Email address already existed. Please login or sign up with another one.</string>
     <string name="error_weak_password">Password too weak. Must be at least 6 characters.</string>
-    <string name="error_bad_email_addr_format">Invalid Email address format. Please check your input</string>
+    <string name="error_bad_email_addr_format">Invalid Email address format.</string>
     <string name="error_unfixed_before_register_singular">Please first fix errors above.</string>
     <string name="error_unfixed_before_register_plural">Please first fix error above.</string>
     <string name="error_empty_username">Username cannot be empty</string>
     <string name="error_empty_bio">Bio cannot be empty</string>
+    <string name="error_password_length_too_short">Password has at least 6 characters.</string>
 
 
 </resources>

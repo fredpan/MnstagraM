@@ -46,6 +46,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -75,6 +76,7 @@ public class Registration extends AppCompatActivity {
     ImageView avatarView;
     Button registerBtn;
     Button addAvatarBtn;
+    ProgressBar progressBar;
     private static final int CAMERA_PERMISSION_CODE = 100;
     private static final int CAMERA_REQUEST = 1888;
     FirebaseFirestore userDb;
@@ -97,6 +99,7 @@ public class Registration extends AppCompatActivity {
         avatarView = findViewById(R.id.avatar);
         registerBtn = findViewById(R.id.register_btn);
         addAvatarBtn = findViewById(R.id.add_avatar);
+        progressBar = findViewById(R.id.progress_bar);
 
         registration();
         addAvatarListener();
@@ -203,6 +206,7 @@ public class Registration extends AppCompatActivity {
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
                 if (passwordView.getError()==null && matchPasswordView.getError()==null && emailView.getError()==null) {
                     String email = emailView.getText().toString();
                     String password = passwordView.getText().toString();
@@ -240,14 +244,17 @@ public class Registration extends AppCompatActivity {
                     if(!hasError){
                         register(user, password);
                     }
-                } else {
-                    int errorCtr = 0;
-                    errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
-                    errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
-                    errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
-                    String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
-                    Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
                 }
+                progressBar.setVisibility(View.INVISIBLE);
+                int errorCtr = 0;
+                errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
+                errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
+                errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
+                errorCtr = (usernameView.getError() == null)? errorCtr : errorCtr+1;
+                errorCtr = (bioView.getError() == null)? errorCtr : errorCtr+1;
+                String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
+                Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
+
             }
         });
     }
@@ -261,6 +268,7 @@ public class Registration extends AppCompatActivity {
                 .addOnCompleteListener(Registration.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        progressBar.setVisibility(View.INVISIBLE);
                         if (task.isSuccessful()) {
                             // Sign in success, update User table
                             FirebaseUser currUser = mAuth.getCurrentUser();
