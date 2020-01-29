@@ -242,9 +242,7 @@ public class Registration extends AppCompatActivity {
                     }
 
                     if(!hasError){
-                        System.out.println("================1");
                         register(user, password);
-                        System.out.println("================2");
                     }else  {
                         progressBar.setVisibility(View.INVISIBLE);
                         int errorCtr = 0;
