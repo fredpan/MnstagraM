@@ -242,7 +242,19 @@ public class Registration extends AppCompatActivity {
                     }
 
                     if(!hasError){
+                        System.out.println("================1");
                         register(user, password);
+                        System.out.println("================2");
+                    }else  {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        int errorCtr = 0;
+                        errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
+                        errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
+                        errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
+                        errorCtr = (usernameView.getError() == null)? errorCtr : errorCtr+1;
+                        errorCtr = (bioView.getError() == null)? errorCtr : errorCtr+1;
+                        String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
+                        Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     progressBar.setVisibility(View.INVISIBLE);
@@ -269,6 +281,7 @@ public class Registration extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         progressBar.setVisibility(View.INVISIBLE);
+                        System.out.println("================3");
                         if (task.isSuccessful()) {
                             // Sign in success, update User table
                             FirebaseUser currUser = mAuth.getCurrentUser();
