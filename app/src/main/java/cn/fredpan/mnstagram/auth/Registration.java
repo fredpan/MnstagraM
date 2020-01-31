@@ -34,9 +34,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -49,6 +53,11 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -58,9 +67,8 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
+import java.io.File;
+import java.io.IOException;
 
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
@@ -81,6 +89,8 @@ public class Registration extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
     FirebaseFirestore userDb;
     private static FirebaseAuth mAuth;
+    private String avatarPath;
+    private static final int REQUEST_TAKE_PHOTO = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,8 +182,10 @@ public class Registration extends AppCompatActivity {
                 if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
                 } else {
-                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
+//                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                    dispatchTakePictureIntent();
+
                 }
             }
         });
@@ -185,8 +197,9 @@ public class Registration extends AppCompatActivity {
         if (requestCode == CAMERA_PERMISSION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, getString(R.string.camera_permisson_granted), Toast.LENGTH_LONG).show();
-                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, CAMERA_REQUEST);
+//                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//                startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                dispatchTakePictureIntent();
             } else {
                 Toast.makeText(this, getString(R.string.failed_grant_camera_permission), Toast.LENGTH_LONG).show();
             }
@@ -196,9 +209,32 @@ public class Registration extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-            avatarView.setImageBitmap(photo);
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
+//            File photo = new File(avatarPath);
+//            avatarView.setImageBitmap(photo);
+//            galleryAddPic();
+
+            // Get the dimensions of the View
+//            int targetW = avatarView.getWidth();
+//            int targetH = avatarView.getHeight();
+//
+//            // Get the dimensions of the bitmap
+//            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+//            bmOptions.inJustDecodeBounds = true;
+//
+//            int photoW = bmOptions.outWidth;
+//            int photoH = bmOptions.outHeight;
+//
+//            // Determine how much to scale down the image
+//            int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+//
+//            // Decode the image file into a Bitmap sized to fill the View
+//            bmOptions.inJustDecodeBounds = false;
+//            bmOptions.inSampleSize = scaleFactor;
+//            bmOptions.inPurgeable = true;
+//
+            Bitmap bitmap = BitmapFactory.decodeFile(avatarPath);
+            avatarView.setImageBitmap(bitmap);
         }
     }
 
@@ -279,7 +315,6 @@ public class Registration extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         progressBar.setVisibility(View.INVISIBLE);
-                        System.out.println("================3");
                         if (task.isSuccessful()) {
                             // Sign in success, update User table
                             FirebaseUser currUser = mAuth.getCurrentUser();
@@ -321,6 +356,45 @@ public class Registration extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "displayPic";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        avatarPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "cn.fredpan.mnstagram.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
+        }
     }
 
 }

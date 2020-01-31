@@ -41,6 +41,7 @@
             android:layout_width="250px"
             android:layout_height="250px"
             android:src="@drawable/avatar"
+            android:background="#fff000"
             ></ImageView>
 
 
