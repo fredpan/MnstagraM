@@ -34,7 +34,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -66,6 +65,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,6 +73,7 @@ import java.io.IOException;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.User;
+import cn.fredpan.mnstagram.pic.ImgHelper;
 
 public class Registration extends AppCompatActivity {
 
@@ -90,6 +91,7 @@ public class Registration extends AppCompatActivity {
     FirebaseFirestore userDb;
     private static FirebaseAuth mAuth;
     private String avatarPath;
+    private Uri photoURI;
     private static final int REQUEST_TAKE_PHOTO = 1;
 
     @Override
@@ -210,31 +212,16 @@ public class Registration extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
-//            File photo = new File(avatarPath);
-//            avatarView.setImageBitmap(photo);
-//            galleryAddPic();
-
-            // Get the dimensions of the View
-//            int targetW = avatarView.getWidth();
-//            int targetH = avatarView.getHeight();
-//
-//            // Get the dimensions of the bitmap
-//            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-//            bmOptions.inJustDecodeBounds = true;
-//
-//            int photoW = bmOptions.outWidth;
-//            int photoH = bmOptions.outHeight;
-//
-//            // Determine how much to scale down the image
-//            int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-//
-//            // Decode the image file into a Bitmap sized to fill the View
-//            bmOptions.inJustDecodeBounds = false;
-//            bmOptions.inSampleSize = scaleFactor;
-//            bmOptions.inPurgeable = true;
-//
-            Bitmap bitmap = BitmapFactory.decodeFile(avatarPath);
-            avatarView.setImageBitmap(bitmap);
+            ImgHelper.takePicWithFixedSize(photoURI, this);
+        }
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            try {
+                Bitmap bitmap = ImgHelper.getCroppedImg(resultCode, data);
+                Bitmap downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
+                avatarView.setImageBitmap(downScaledBitmap);
+            } catch (Exception e) {
+                Toast.makeText(Registration.this, "Unable to crop the image, please restart the app and try again.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -388,7 +375,7 @@ public class Registration extends AppCompatActivity {
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
+                photoURI = FileProvider.getUriForFile(this,
                         "cn.fredpan.mnstagram.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
