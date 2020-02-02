@@ -81,7 +81,6 @@ import cn.fredpan.mnstagram.pic.ImgHelper;
 public class Registration extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_CODE = 100;
-    private static final int CAMERA_REQUEST = 1888;
     private static final int REQUEST_TAKE_PHOTO = 1;
     EditText emailView;
     EditText passwordView;
@@ -205,8 +204,6 @@ public class Registration extends AppCompatActivity {
         if (requestCode == CAMERA_PERMISSION_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, getString(R.string.camera_permisson_granted), Toast.LENGTH_LONG).show();
-//                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-//                startActivityForResult(cameraIntent, CAMERA_REQUEST);
                 dispatchTakePictureIntent();
             } else {
                 Toast.makeText(this, getString(R.string.failed_grant_camera_permission), Toast.LENGTH_LONG).show();
@@ -218,14 +215,17 @@ public class Registration extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
-            ImgHelper.takePicWithFixedSize(photoURI, this);
+            ImgHelper.cropPicWithFixedSize(photoURI, this);
         }
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             try {
                 Bitmap bitmap = ImgHelper.getCroppedImg(resultCode, data);
-                downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
-                avatarView.setImageBitmap(downScaledBitmap);
-                downScaledAvatarPath = ImgHelper.saveImg(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH, "displayPic", downScaledBitmap, 100).getAbsolutePath();
+                if (bitmap != null) {
+                    downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
+                    avatarView.setImageBitmap(downScaledBitmap);
+                    downScaledAvatarPath = ImgHelper.saveImg(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH, "displayPic", downScaledBitmap, 100).getAbsolutePath();
+                    // THe original one has been override, the one camera took
+                }
             } catch (Exception e) {
                 Toast.makeText(Registration.this, getString(R.string.failed_read_write_image), Toast.LENGTH_SHORT).show();
             }
@@ -348,6 +348,7 @@ public class Registration extends AppCompatActivity {
                                                                     FirebaseUser currTempUser = FirebaseAuth.getInstance().getCurrentUser();
                                                                     if (currTempUser != null && currTempUser.getEmail() != null && currTempUser.getEmail().equals(user.getEmail())) {
                                                                         Intent mainActivity = new Intent(Registration.this, MainActivity.class);
+                                                                        user.setUid(currTempUser.getUid());
                                                                         mainActivity.putExtra("user", user);
                                                                         Registration.this.startActivity(mainActivity);
                                                                     } else {
@@ -417,13 +418,12 @@ public class Registration extends AppCompatActivity {
             if (!folder.exists()) {
                 folder.mkdirs();
             }
-            File photoFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH + "displayPic.jpg");
+            File photoFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH + "/displayPic.jpg");
             photoURI = FileProvider.getUriForFile(this,
                     "cn.fredpan.mnstagram.fileprovider",
                     photoFile);
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
             startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-
         }
     }
 

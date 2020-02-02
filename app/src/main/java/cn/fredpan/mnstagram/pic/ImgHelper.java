@@ -57,14 +57,22 @@ public class ImgHelper {
 
     private static final int RESULT_OK = -1;
 
+    private static final int RESULT_CANCELED = 0;
+
     public static final String PIC_TEMP_PATH = "/temp";
 
-    public static void takePicWithFixedSize(Uri photoURI, Activity activity){
+    public static void cropPicWithFixedSize(Uri photoURI, Activity activity) {
         CropImage.activity(photoURI)
                 .setFixAspectRatio(true)
                 .start(activity);
     }
 
+    /**
+     * @param resultCode the Result code from the onActivityResult.
+     * @param data       Intent
+     * @return cropped bitmap. A null will be returned if the crop activity has been cancelled
+     * @throws Exception IllegalStateException indicates that the crop activity has unexpected result.
+     */
     public static Bitmap getCroppedImg(int resultCode, Intent data) throws Exception {
         CropImage.ActivityResult result = CropImage.getActivityResult(data);
         if (resultCode == RESULT_OK) {
@@ -72,8 +80,10 @@ public class ImgHelper {
             return BitmapFactory.decodeFile(resultUri.getEncodedPath());
         } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
             throw result.getError();
+        } else if (resultCode == RESULT_CANCELED) {
+            return null;
         } else {
-            throw new IllegalStateException("Crop acivity unsuccessful without proper error result code.");
+            throw new IllegalStateException("Crop activity unsuccessful without proper error result code.");
         }
     }
 
