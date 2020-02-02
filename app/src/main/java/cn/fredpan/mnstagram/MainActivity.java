@@ -51,17 +51,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.FileProvider;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -81,6 +70,16 @@ import com.theartofdev.edmodo.cropper.CropImage;
 import java.io.File;
 import java.util.Date;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import cn.fredpan.mnstagram.auth.Login;
 import cn.fredpan.mnstagram.model.PictureDto;
 import cn.fredpan.mnstagram.model.User;
@@ -303,6 +302,14 @@ public class MainActivity extends AppCompatActivity {
 
     public User getUser() {
         return user;
+    }
+
+    public FirebaseFirestore getDb() {
+        return db;
+    }
+
+    public StorageReference getPicStorage() {
+        return picStorage;
     }
 
     private void loadAvatarAndInit(){
