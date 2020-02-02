@@ -34,7 +34,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Environment;
 
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -57,6 +56,8 @@ public class ImgHelper {
     private static final int FIXED_SCALED_THUMBNAIL_HEIGHT = FIXED_SCALED_THUMBNAIL_SIZE;
 
     private static final int RESULT_OK = -1;
+
+    public static final String PIC_TEMP_PATH = "/temp";
 
     public static void takePicWithFixedSize(Uri photoURI, Activity activity){
         CropImage.activity(photoURI)
@@ -84,17 +85,17 @@ public class ImgHelper {
         return downScaleImg(originPic, FIXED_SCALED_THUMBNAIL_WIDTH, FIXED_SCALED_THUMBNAIL_HEIGHT);
     }
 
-    public static String saveImg(String imgName, Bitmap img, Activity activity, int quality) throws IOException {
-        File imgDir = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        if (!imgDir.exists()) {
-            imgDir.mkdirs();
+    public static File saveImg(String path, String imgName, Bitmap img, int quality) throws IOException {
+        File folder = new File(path);
+        if (!folder.exists()) {
+            folder.mkdirs();
         }
-        File file = new File (imgDir, imgName + ".jpg");
+        File file = new File (path, imgName + ".jpg");
         FileOutputStream out = new FileOutputStream(file);
         img.compress(Bitmap.CompressFormat.JPEG, quality, out);
         out.flush();
         out.close();
-        return file.getAbsolutePath();
+        return file;
     }
 
     private static Bitmap downScaleImg(Bitmap originPic, int width, int height){

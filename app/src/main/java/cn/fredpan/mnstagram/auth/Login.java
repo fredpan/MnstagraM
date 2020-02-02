@@ -82,12 +82,25 @@ public class Login extends AppCompatActivity {
         signUpBtn = findViewById(R.id.sign_up);
         progressBar = findViewById(R.id.progress_bar);
 
+        //init folders
+        initFolders();
+
         loginDirectly();
 
         logInListener();
         signUpRedirectionListener();
         emailFormatCheckListener();
         passwordLengthCheckListener();
+    }
+
+    /**
+     * init all the necessary folders here
+     */
+    private void initFolders() {
+//        File folder = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH);
+//        if (!folder.exists()) {
+//            folder.mkdirs();
+//        }
     }
 
     private void passwordLengthCheckListener() {

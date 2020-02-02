@@ -51,6 +51,7 @@
     <string name="error_empty_username">Username cannot be empty</string>
     <string name="error_empty_bio">Bio cannot be empty</string>
     <string name="error_password_length_too_short">Password has at least 6 characters.</string>
+    <string name="failed_read_write_image">Failed to save image. Please open read/write file permission.</string>
 
 
 </resources>

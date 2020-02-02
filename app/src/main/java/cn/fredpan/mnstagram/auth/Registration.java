@@ -97,6 +97,7 @@ public class Registration extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private Uri photoURI;
     private String downScaledAvatarPath;
+    private Bitmap downScaledBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -222,11 +223,11 @@ public class Registration extends AppCompatActivity {
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             try {
                 Bitmap bitmap = ImgHelper.getCroppedImg(resultCode, data);
-                Bitmap downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
+                downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
                 avatarView.setImageBitmap(downScaledBitmap);
-                downScaledAvatarPath = ImgHelper.saveImg("displayPic", downScaledBitmap, this, 100);
+                downScaledAvatarPath = ImgHelper.saveImg(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH, "displayPic", downScaledBitmap, 100).getAbsolutePath();
             } catch (Exception e) {
-                Toast.makeText(Registration.this, "Unable to crop the image, please restart the app and try again.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(Registration.this, getString(R.string.failed_read_write_image), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -323,8 +324,15 @@ public class Registration extends AppCompatActivity {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if (task.isSuccessful()) {
+                                                //store avatar to local pic storage
+                                                File img = new File(downScaledAvatarPath);
+                                                try {
+                                                    ImgHelper.saveImg(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + currUser.getUid(), "displayPic", downScaledBitmap, 100);
+                                                } catch (IOException e) {
+                                                    Toast.makeText(Registration.this, getString(R.string.failed_read_write_image), Toast.LENGTH_SHORT).show();//Doesn't matter if failed.
+                                                }
                                                 //store avatar to pic storage
-                                                Uri file = Uri.fromFile(new File(downScaledAvatarPath));
+                                                Uri file = Uri.fromFile(img);
                                                 String path = "pictures/" + currUser.getUid() + "/" + "displayPic.jpg";
                                                 StorageReference displayPicRef = picStorage.child(path);
 
@@ -405,14 +413,17 @@ public class Registration extends AppCompatActivity {
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
-                photoFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/displayPic.jpg");
-            // Continue only if the File was successfully created
-                photoURI = FileProvider.getUriForFile(this,
-                        "cn.fredpan.mnstagram.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            File folder = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            File photoFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH + "displayPic.jpg");
+            photoURI = FileProvider.getUriForFile(this,
+                    "cn.fredpan.mnstagram.fileprovider",
+                    photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+
         }
     }
 

@@ -214,7 +214,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadAvatarAndInit(){
-        final File img = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/displayPic.jpg");
+        File folder = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid());
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        final File img = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/displayPic.jpg");
         if (!img.exists()) {
             //load avatar
             String path = "pictures/" + user.getUid() + "/" + "displayPic.jpg";
