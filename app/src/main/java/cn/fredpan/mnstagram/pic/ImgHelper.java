@@ -34,8 +34,13 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 
 import com.theartofdev.edmodo.cropper.CropImage;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class ImgHelper {
 
@@ -77,6 +82,19 @@ public class ImgHelper {
 
     public static Bitmap getThumbnail(Bitmap originPic) {
         return downScaleImg(originPic, FIXED_SCALED_THUMBNAIL_WIDTH, FIXED_SCALED_THUMBNAIL_HEIGHT);
+    }
+
+    public static String saveImg(String imgName, Bitmap img, Activity activity, int quality) throws IOException {
+        File imgDir = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if (!imgDir.exists()) {
+            imgDir.mkdirs();
+        }
+        File file = new File (imgDir, imgName + ".jpg");
+        FileOutputStream out = new FileOutputStream(file);
+        img.compress(Bitmap.CompressFormat.JPEG, quality, out);
+        out.flush();
+        out.close();
+        return file.getAbsolutePath();
     }
 
     private static Bitmap downScaleImg(Bitmap originPic, int width, int height){

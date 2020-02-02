@@ -65,6 +65,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
@@ -77,6 +80,9 @@ import cn.fredpan.mnstagram.pic.ImgHelper;
 
 public class Registration extends AppCompatActivity {
 
+    private static final int CAMERA_PERMISSION_CODE = 100;
+    private static final int CAMERA_REQUEST = 1888;
+    private static final int REQUEST_TAKE_PHOTO = 1;
     EditText emailView;
     EditText passwordView;
     EditText matchPasswordView;
@@ -86,21 +92,20 @@ public class Registration extends AppCompatActivity {
     Button registerBtn;
     Button addAvatarBtn;
     ProgressBar progressBar;
-    private static final int CAMERA_PERMISSION_CODE = 100;
-    private static final int CAMERA_REQUEST = 1888;
-    FirebaseFirestore userDb;
-    private static FirebaseAuth mAuth;
-    private String avatarPath;
+    private FirebaseFirestore db;
+    private StorageReference picStorage;
+    private FirebaseAuth mAuth;
     private Uri photoURI;
-    private static final int REQUEST_TAKE_PHOTO = 1;
+    private String downScaledAvatarPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.registration);
 
-        userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
-        mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
+        db = (db == null) ? FirebaseFirestore.getInstance() : db;
+        mAuth = (mAuth == null) ? FirebaseAuth.getInstance() : mAuth;
+        picStorage = (picStorage == null) ? FirebaseStorage.getInstance().getReference() : picStorage;
 
         //basic components
         emailView = findViewById(R.id.email);
@@ -138,7 +143,7 @@ public class Registration extends AppCompatActivity {
         });
     }
 
-    private void emailValidation(){
+    private void emailValidation() {
         //used to update the email error hint state
         emailFormatValidation();
     }
@@ -147,9 +152,9 @@ public class Registration extends AppCompatActivity {
         emailView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus){
-                    boolean isValidEmail = (!TextUtils.isEmpty(((EditText)v).getText().toString()) && Patterns.EMAIL_ADDRESS.matcher(((EditText)v).getText().toString()).matches());
-                    if (!isValidEmail){
+                if (!hasFocus) {
+                    boolean isValidEmail = (!TextUtils.isEmpty(((EditText) v).getText().toString()) && Patterns.EMAIL_ADDRESS.matcher(((EditText) v).getText().toString()).matches());
+                    if (!isValidEmail) {
                         emailView.setError(getString(R.string.error_bad_email_addr_format));
                     }
                 }
@@ -219,6 +224,7 @@ public class Registration extends AppCompatActivity {
                 Bitmap bitmap = ImgHelper.getCroppedImg(resultCode, data);
                 Bitmap downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
                 avatarView.setImageBitmap(downScaledBitmap);
+                downScaledAvatarPath = ImgHelper.saveImg("displayPic", downScaledBitmap, this, 100);
             } catch (Exception e) {
                 Toast.makeText(Registration.this, "Unable to crop the image, please restart the app and try again.", Toast.LENGTH_SHORT).show();
             }
@@ -230,13 +236,13 @@ public class Registration extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
-                if (passwordView.getError()==null && matchPasswordView.getError()==null && emailView.getError()==null) {
+                if (passwordView.getError() == null && matchPasswordView.getError() == null && emailView.getError() == null) {
                     String email = emailView.getText().toString();
                     String password = passwordView.getText().toString();
                     String passwordMatch = matchPasswordView.getText().toString();
                     String username = usernameView.getText().toString();
                     String bio = bioView.getText().toString();
-                    Bitmap avatar = ((BitmapDrawable)avatarView.getDrawable()).getBitmap();
+                    Bitmap avatar = ((BitmapDrawable) avatarView.getDrawable()).getBitmap();
                     User user = new User(avatar, username, bio, email);
 
                     //Final checks
@@ -251,7 +257,7 @@ public class Registration extends AppCompatActivity {
                         hasError = true;
                     }
                     boolean isValidEmail = (!TextUtils.isEmpty(emailView.getText().toString()) && Patterns.EMAIL_ADDRESS.matcher(emailView.getText().toString()).matches());
-                    if (!isValidEmail){
+                    if (!isValidEmail) {
                         emailView.setError(getString(R.string.error_bad_email_addr_format));
                         hasError = true;
                     }
@@ -264,27 +270,27 @@ public class Registration extends AppCompatActivity {
                         hasError = true;
                     }
 
-                    if(!hasError){
+                    if (!hasError) {
                         register(user, password);
-                    }else  {
+                    } else {
                         progressBar.setVisibility(View.INVISIBLE);
                         int errorCtr = 0;
-                        errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
-                        errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
-                        errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
-                        errorCtr = (usernameView.getError() == null)? errorCtr : errorCtr+1;
-                        errorCtr = (bioView.getError() == null)? errorCtr : errorCtr+1;
+                        errorCtr = (emailView.getError() == null) ? errorCtr : errorCtr + 1;
+                        errorCtr = (passwordView.getError() == null) ? errorCtr : errorCtr + 1;
+                        errorCtr = (matchPasswordView.getError() == null) ? errorCtr : errorCtr + 1;
+                        errorCtr = (usernameView.getError() == null) ? errorCtr : errorCtr + 1;
+                        errorCtr = (bioView.getError() == null) ? errorCtr : errorCtr + 1;
                         String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
                         Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     progressBar.setVisibility(View.INVISIBLE);
                     int errorCtr = 0;
-                    errorCtr = (emailView.getError() == null)? errorCtr : errorCtr+1;
-                    errorCtr = (passwordView.getError() == null)? errorCtr : errorCtr+1;
-                    errorCtr = (matchPasswordView.getError() == null)? errorCtr : errorCtr+1;
-                    errorCtr = (usernameView.getError() == null)? errorCtr : errorCtr+1;
-                    errorCtr = (bioView.getError() == null)? errorCtr : errorCtr+1;
+                    errorCtr = (emailView.getError() == null) ? errorCtr : errorCtr + 1;
+                    errorCtr = (passwordView.getError() == null) ? errorCtr : errorCtr + 1;
+                    errorCtr = (matchPasswordView.getError() == null) ? errorCtr : errorCtr + 1;
+                    errorCtr = (usernameView.getError() == null) ? errorCtr : errorCtr + 1;
+                    errorCtr = (bioView.getError() == null) ? errorCtr : errorCtr + 1;
                     String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
                     Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
                 }
@@ -296,46 +302,79 @@ public class Registration extends AppCompatActivity {
         return password.equals(passwordMatch);
     }
 
-    private void register(final User user, final String password){
+    private void register(final User user, final String password) {
+
+        // register user to auth db
+
         mAuth.createUserWithEmailAndPassword(user.getEmail(), password)
                 .addOnCompleteListener(Registration.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        progressBar.setVisibility(View.INVISIBLE);
                         if (task.isSuccessful()) {
                             // Sign in success, update User table
-                            FirebaseUser currUser = mAuth.getCurrentUser();
+                            final FirebaseUser currUser = mAuth.getCurrentUser();
                             assert currUser != null;
-                            //todo avatar
-                            user.setAvatar(null);
-                            userDb.collection("users/").document(currUser.getUid()).set(user.generateUserDto());
-                            //recheck if is logged in
-                            FirebaseUser currTempUser = FirebaseAuth.getInstance().getCurrentUser();
-                            if (currTempUser != null && currTempUser.getEmail() != null && currTempUser.getEmail().equals(user.getEmail())) {
-                                Intent mainActivity = new Intent(Registration.this, MainActivity.class);
-                                mainActivity.putExtra("user", user);
-                                Registration.this.startActivity(mainActivity);
-                            }else {
-                                // shouldn't go to here as the createUserWithEmailAndPassword also auto sign in
-                                Log.d("REGISTRATION: ", "Registered without auto login. Check with FirebaseAuth or the Internet connection.");
-                                Intent loginActivity = new Intent(Registration.this, Login.class);
-                                loginActivity.putExtra("user", user);
-                                Registration.this.startActivity(loginActivity);
-                            }
+                            user.setAvatar(null);// Bitmap cannot pass through Intent.
+
+                            //store registered user to user db
+
+                            db.collection("users/").document(currUser.getUid()).set(user.generateUserDto())
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                //store avatar to pic storage
+                                                Uri file = Uri.fromFile(new File(downScaledAvatarPath));
+                                                String path = "pictures/" + currUser.getUid() + "/" + "displayPic.jpg";
+                                                StorageReference displayPicRef = picStorage.child(path);
+
+                                                // store avatar for the current registered user to storage
+
+                                                displayPicRef.putFile(file)
+                                                        .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                                                                if (task.isSuccessful()) {
+                                                                    progressBar.setVisibility(View.INVISIBLE);
+                                                                    //recheck if is logged in
+                                                                    FirebaseUser currTempUser = FirebaseAuth.getInstance().getCurrentUser();
+                                                                    if (currTempUser != null && currTempUser.getEmail() != null && currTempUser.getEmail().equals(user.getEmail())) {
+                                                                        Intent mainActivity = new Intent(Registration.this, MainActivity.class);
+                                                                        mainActivity.putExtra("user", user);
+                                                                        Registration.this.startActivity(mainActivity);
+                                                                    } else {
+                                                                        // shouldn't go to here as the createUserWithEmailAndPassword also auto sign in
+                                                                        Log.d("REGISTRATION: ", "Registered without auto login. Check with FirebaseAuth or the Internet connection.");
+                                                                        Intent loginActivity = new Intent(Registration.this, Login.class);
+                                                                        loginActivity.putExtra("user", user);
+                                                                        Registration.this.startActivity(loginActivity);
+                                                                    }
+                                                                } else {
+//                                                                    failed to upload img?
+                                                                }
+                                                            }
+                                                        });
+                                            } else {
+//                                                mAuth.getCurrentUser().delete();
+//                                                failed to insert into user db?
+                                            }
+                                        }
+                                    });
+
                         } else {
                             progressBar.setVisibility(View.INVISIBLE);
                             // If sign up fails, display a message to the user.
                             if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                                 emailView.setError(getString(R.string.error_duplicated_email_registration));
-                            }else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                            } else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
                                 //check for both the weak password and the invalid email again. Note here won't pop two exception if both invalid email and weak password.
-                                if (((FirebaseAuthInvalidCredentialsException) task.getException()).getErrorCode().equals("ERROR_WEAK_PASSWORD")){
+                                if (((FirebaseAuthInvalidCredentialsException) task.getException()).getErrorCode().equals("ERROR_WEAK_PASSWORD")) {
                                     passwordView.setError(getString(R.string.error_weak_password));
                                 }
-                                if (((FirebaseAuthInvalidCredentialsException) task.getException()).getErrorCode().equals("ERROR_INVALID_EMAIL")){
+                                if (((FirebaseAuthInvalidCredentialsException) task.getException()).getErrorCode().equals("ERROR_INVALID_EMAIL")) {
                                     emailView.setError(getString(R.string.error_bad_email_addr_format));
                                 }
-                            }else {
+                            } else {
                                 Log.d("REGISTRATION: ", "createUserWithEmail:failure", task.getException());
                                 Toast.makeText(Registration.this.getBaseContext(), getString(R.string.failed_registration), Toast.LENGTH_SHORT).show();
                             }
@@ -357,7 +396,7 @@ public class Registration extends AppCompatActivity {
         );
 
         // Save a file: path for use with ACTION_VIEW intents
-        avatarPath = image.getAbsolutePath();
+//        avatarPath = image.getAbsolutePath();
         return image;
     }
 
@@ -367,20 +406,13 @@ public class Registration extends AppCompatActivity {
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
             File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-
-            }
+                photoFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/displayPic.jpg");
             // Continue only if the File was successfully created
-            if (photoFile != null) {
                 photoURI = FileProvider.getUriForFile(this,
                         "cn.fredpan.mnstagram.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
         }
     }
 

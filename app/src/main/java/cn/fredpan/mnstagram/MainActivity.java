@@ -31,22 +31,16 @@ package cn.fredpan.mnstagram;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -57,6 +51,22 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.io.File;
+
 import cn.fredpan.mnstagram.auth.Login;
 import cn.fredpan.mnstagram.model.User;
 import cn.fredpan.mnstagram.model.UserDto;
@@ -65,7 +75,9 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
 
-    private static FirebaseAuth mAuth;
+    private FirebaseAuth mAuth;
+
+    private StorageReference picStorage;
 
     FirebaseFirestore userDb;
 
@@ -77,18 +89,22 @@ public class MainActivity extends AppCompatActivity {
 
     TextView navEmail;
 
+    ImageView navAvatar;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
         userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
+        picStorage = (picStorage == null) ? FirebaseStorage.getInstance().getReference() : picStorage;
 
         //get logged in user info
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             user = (User) getIntent().getSerializableExtra("user"); //Obtaining data
-            init();
+            loadAvatarAndInit();
         } else {
             retrieveCurrentLoginUserDataFromDb();
         }
@@ -116,14 +132,14 @@ public class MainActivity extends AppCompatActivity {
         logoutBtn = menuNav.findItem(R.id.logout);
         navEmail = navHeaderView.findViewById(R.id.nav_email);
         navUsername = navHeaderView.findViewById(R.id.nav_username);
+        navAvatar = navHeaderView.findViewById(R.id.nav_avatar);
 
         displayUserInfo();
         logoutListener();
     }
 
     private void retrieveCurrentLoginUserDataFromDb() {
-        // shouldn't be here
-        if (mAuth.getCurrentUser() == null) {
+        if (mAuth.getCurrentUser() == null) {// shouldn't be here
             Toast.makeText(MainActivity.this, getString(R.string.failed_loading_logged_in_user_info_relogin_required), Toast.LENGTH_LONG).show();
             signOut();
             throw new IllegalStateException("Accessed to the MainActivity while not login or the current user info cannot be found on mAuth.");
@@ -137,22 +153,23 @@ public class MainActivity extends AppCompatActivity {
                             if (document.getId().equals(currUser.getUid())) {
                                 UserDto userDto = document.toObject(UserDto.class);
                                 user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
+                                loadAvatarAndInit();
+                                break;
                             }
                         }
                     } else {
                         Toast.makeText(MainActivity.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
                         Log.w("LOGIN: ", "Error getting documents.", task.getException());
                     }
-                    init();
                 }
             });
         }
     }
 
-
     private void displayUserInfo() {
         navUsername.setText(user.getUsername());
         navEmail.setText(user.getEmail());
+        navAvatar.setImageBitmap(user.getAvatar());
     }
 
     private void logoutListener() {
@@ -190,5 +207,29 @@ public class MainActivity extends AppCompatActivity {
         FirebaseAuth.getInstance().signOut();
         Intent loginActivity = new Intent(MainActivity.this, Login.class);
         MainActivity.this.startActivity(loginActivity);
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    private void loadAvatarAndInit(){
+        final File img = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/displayPic.jpg");
+        if (!img.exists()) {
+            //load avatar
+            String path = "pictures/" + user.getUid() + "/" + "displayPic.jpg";
+            StorageReference displayPicRef = picStorage.child(path);
+            displayPicRef.getFile(img)
+                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            user.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
+                            init();
+                        }
+                    });
+        } else {
+            user.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
+            init();
+        }
     }
 }
