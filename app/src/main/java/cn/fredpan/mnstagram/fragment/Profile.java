@@ -71,6 +71,7 @@ import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -180,6 +181,7 @@ public class Profile extends Fragment {
             if (!folder.exists()) {
                 folder.mkdirs();
             }
+
             Date date = new Date();
             imgName = String.valueOf(new Timestamp(date).getSeconds());
             photoFile = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/" + imgName + ".jpg");
@@ -234,7 +236,8 @@ public class Profile extends Fragment {
         // store pic for the current registered user to storage
         String path = "pictures/" + user.getUid() + "/" + imgName + ".jpg";
         StorageReference displayPicRef = picStorage.child(path);
-        final Picture temp = new Picture(BitmapFactory.decodeFile(""));
+        final Picture temp = new Picture(new PictureDto(), BitmapFactory.decodeFile(""));
+        temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds() + 1000000));//make sure it is always the first one
         pic.add(temp);
         mAdapter.notifyDataSetChanged();
         displayPicRef.putFile(photoURI)
@@ -244,10 +247,10 @@ public class Profile extends Fragment {
                         if (task.isSuccessful()) {
                             System.out.println(photoURI.getPath());
                             pic.remove(temp);
-                            pic.add(new Picture(BitmapFactory.decodeFile(photoFile.getAbsolutePath())));
+                            pic.add(new Picture(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName), BitmapFactory.decodeFile(photoFile.getAbsolutePath())));
                             mAdapter.notifyDataSetChanged();
                         } else {
-//                                                                    failed to upload img?
+//                          failed to upload img?
                         }
                     }
                 });
@@ -256,7 +259,7 @@ public class Profile extends Fragment {
     private void initPicLists() {
 
         pic = new ArrayList<>();
-        pic.addAll(obtainPics());
+        obtainPics();
         //Changes in content do not change the layout size of the RecyclerView
 //        recyclerView.setHasFixedSize(true);
 
@@ -269,15 +272,15 @@ public class Profile extends Fragment {
             @Override
             public void onChanged() {
                 super.onChanged();
+                Collections.sort(pic);
             }
         });
 
         mAdapter.notifyDataSetChanged();
     }
 
-    private List<Picture> obtainPics() {
-        final List<String> refs = new ArrayList<>();
-        final List<Picture> pics = new ArrayList<>();
+    private void obtainPics() {
+        final List<PictureDto> refs = new ArrayList<>();
         db.collection("photos").whereEqualTo("uid", user.getUid())
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -286,21 +289,21 @@ public class Profile extends Fragment {
                     // get all ref
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         PictureDto pictureDto = document.toObject(PictureDto.class);
-                        refs.add(pictureDto.getStorageRef());
+                        refs.add(pictureDto);
                     }
-                    for (String ref : refs) {
-                        File file = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref);
+                    for (final PictureDto ref : refs) {
+                        File file = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref.getStorageRef());
                         if (file.exists()) {
-                            pic.add(new Picture(BitmapFactory.decodeFile(file.getAbsolutePath())));
+                            pic.add(new Picture(ref, BitmapFactory.decodeFile(file.getAbsolutePath())));
                             mAdapter.notifyDataSetChanged();
                         } else {
-                            final File localFile = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref);
-                            StorageReference picRef = picStorage.child("pictures/" + ref);
+                            final File localFile = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref.getStorageRef());
+                            StorageReference picRef = picStorage.child("pictures/" + ref.getStorageRef());
                             picRef.getFile(localFile)
                                     .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                                         @Override
                                         public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                                            pic.add(new Picture(BitmapFactory.decodeFile(localFile.getAbsolutePath())));
+                                            pic.add(new Picture(ref, BitmapFactory.decodeFile(localFile.getAbsolutePath())));
                                             mAdapter.notifyDataSetChanged();
                                         }
                                     });
@@ -313,7 +316,6 @@ public class Profile extends Fragment {
                 }
             }
         });
-        return pics;
     }
 
     private void displayUserInfo() {

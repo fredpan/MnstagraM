@@ -32,7 +32,9 @@ package cn.fredpan.mnstagram.fragment;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +48,8 @@ import java.util.List;
 
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
+import cn.fredpan.mnstagram.model.PictureDto;
+import cn.fredpan.mnstagram.pic.PicDetailDisplay;
 
 class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListAdapter.MyViewHolder> {
     private List<Picture> mPics;
@@ -96,7 +100,19 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
                 builder.show();
             }
         });
-
+        holder.imgView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Intent picDetailActivity = new Intent(activity.getApplicationContext(), PicDetailDisplay.class);
+                String path = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + mPics.get(position).getStorageRef();
+                picDetailActivity.putExtra("path", path);
+                Picture picture = mPics.get(position);
+                PictureDto pictureDto = new PictureDto(picture.getUid(), picture.getStorageRef(), picture.getTimestamp());
+                picDetailActivity.putExtra("pictureDto", pictureDto);
+                activity.startActivity(picDetailActivity);
+                return true;
+            }
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)

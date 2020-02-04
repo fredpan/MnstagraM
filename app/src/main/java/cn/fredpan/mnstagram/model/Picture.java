@@ -31,15 +31,28 @@ package cn.fredpan.mnstagram.model;
 
 import android.graphics.Bitmap;
 
-public class Picture {
+public class Picture implements Comparable<Picture> {
 
     private Bitmap pic;
+    private String uid;
+    private String storageRef;
+    private String timestamp;
 
     public Picture() {
     }
 
-    public Picture(Bitmap pic) {
+    public Picture(Bitmap pic, String uid, String storageRef, String timestamp) {
         this.pic = pic;
+        this.uid = uid;
+        this.storageRef = storageRef;
+        this.timestamp = timestamp;
+    }
+
+    public Picture(PictureDto pictureDto, Bitmap pic) {
+        this.pic = pic;
+        this.uid = pictureDto.getUid();
+        this.storageRef = pictureDto.getStorageRef();
+        this.timestamp = pictureDto.getTimestamp();
     }
 
     public Bitmap getPic() {
@@ -48,5 +61,37 @@ public class Picture {
 
     public void setPic(Bitmap pic) {
         this.pic = pic;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public String getStorageRef() {
+        return storageRef;
+    }
+
+    public void setStorageRef(String storageRef) {
+        this.storageRef = storageRef;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    @Override
+    public int compareTo(Picture picture) {
+        if (getTimestamp() == null || picture.getTimestamp() == null) {
+            return 0;
+        }
+        return Integer.valueOf(picture.getTimestamp()).compareTo(Integer.valueOf(getTimestamp()));
     }
 }
