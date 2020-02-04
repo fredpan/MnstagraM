@@ -29,6 +29,7 @@
 
 package cn.fredpan.mnstagram.fragment;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
@@ -149,7 +150,14 @@ public class Profile extends Fragment {
                     }
                     Toast.makeText(getActivity(), "Please wait for photo posted before taking a new one.", Toast.LENGTH_SHORT).show();
                 } else {
-                    dispatchTakePictureIntent();
+                    if (getActivity().checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+                    } else {
+//                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                        dispatchTakePictureIntent();
+
+                    }
                 }
             }
         });
