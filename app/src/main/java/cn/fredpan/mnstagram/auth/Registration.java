@@ -219,10 +219,19 @@ public class Registration extends AppCompatActivity {
         }
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             try {
-                Bitmap bitmap = ImgHelper.getCroppedImg(resultCode, data);
+                final Bitmap bitmap = ImgHelper.getCroppedImg(resultCode, data);
                 if (bitmap != null) {
                     downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
                     avatarView.setImageBitmap(downScaledBitmap);
+
+                    avatarView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            ImgHelper.displayPreviewImg(Registration.this, bitmap);
+                        }
+                    });
+
+
                     downScaledAvatarPath = ImgHelper.saveImg(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH, "displayPic", downScaledBitmap, 100).getAbsolutePath();
                     // THe original one has been override, the one camera took
                 }

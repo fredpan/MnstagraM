@@ -42,6 +42,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -57,18 +67,10 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import cn.fredpan.mnstagram.auth.Login;
 import cn.fredpan.mnstagram.model.User;
 import cn.fredpan.mnstagram.model.UserDto;
+import cn.fredpan.mnstagram.pic.ImgHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -244,6 +246,12 @@ public class MainActivity extends AppCompatActivity {
         navUsername.setText(user.getUsername());
         navEmail.setText(user.getEmail());
         navAvatar.setImageBitmap(user.getAvatar());
+        navAvatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ImgHelper.displayPreviewImg(MainActivity.this, user.getAvatar());
+            }
+        });
     }
 
     private void signOut(){

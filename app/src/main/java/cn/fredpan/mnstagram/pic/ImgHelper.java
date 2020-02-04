@@ -30,19 +30,26 @@
 package cn.fredpan.mnstagram.pic;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+
+import androidx.fragment.app.Fragment;
 
 import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import androidx.fragment.app.Fragment;
 
 public class ImgHelper {
 
@@ -115,6 +122,26 @@ public class ImgHelper {
         out.flush();
         out.close();
         return file;
+    }
+
+    public static void displayPreviewImg(Activity activity, Bitmap bitmap) {
+        Dialog builder = new Dialog(activity);
+        builder.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        builder.getWindow().setBackgroundDrawable(
+                new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                //nothing;
+            }
+        });
+
+        ImageView imageView = new ImageView(activity);
+        imageView.setImageBitmap(bitmap);
+        builder.addContentView(imageView, new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        builder.show();
     }
 
     private static Bitmap downScaleImg(Bitmap originPic, int width, int height){

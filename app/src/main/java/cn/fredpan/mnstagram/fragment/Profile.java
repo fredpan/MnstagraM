@@ -354,6 +354,12 @@ public class Profile extends Fragment {
         usernameView.setText(user.getUsername());
         bioView.setText(user.getBio());
         avatarView.setImageBitmap(user.getAvatar());
+        avatarView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ImgHelper.displayPreviewImg(getActivity(), user.getAvatar());
+            }
+        });
     }
 
     private Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {

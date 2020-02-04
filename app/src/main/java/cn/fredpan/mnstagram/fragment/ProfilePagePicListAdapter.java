@@ -30,17 +30,12 @@
 package cn.fredpan.mnstagram.fragment;
 
 import android.app.Activity;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -49,6 +44,7 @@ import java.util.List;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
 import cn.fredpan.mnstagram.model.PictureDto;
+import cn.fredpan.mnstagram.pic.ImgHelper;
 import cn.fredpan.mnstagram.pic.PicDetailDisplay;
 
 class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListAdapter.MyViewHolder> {
@@ -81,23 +77,7 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
         holder.imgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Dialog builder = new Dialog(activity);
-                builder.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                builder.getWindow().setBackgroundDrawable(
-                        new ColorDrawable(android.graphics.Color.TRANSPARENT));
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialogInterface) {
-                        //nothing;
-                    }
-                });
-
-                ImageView imageView = new ImageView(activity);
-                imageView.setImageBitmap(mPics.get(position).getPic());
-                builder.addContentView(imageView, new RelativeLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
-                builder.show();
+                ImgHelper.displayPreviewImg(activity, mPics.get(position).getPic());
             }
         });
         holder.imgView.setOnLongClickListener(new View.OnLongClickListener() {
