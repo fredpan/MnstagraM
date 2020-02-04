@@ -35,6 +35,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -51,6 +56,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -229,6 +235,9 @@ public class Profile extends Fragment {
     }
 
     private void uploadImg() {
+        //Toast
+        Toast.makeText(getContext(), "Posting picture...", Toast.LENGTH_LONG).show();
+
         //upload to db
         db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName));
 
@@ -236,8 +245,14 @@ public class Profile extends Fragment {
         // store pic for the current registered user to storage
         String path = "pictures/" + user.getUid() + "/" + imgName + ".jpg";
         StorageReference displayPicRef = picStorage.child(path);
-        final Picture temp = new Picture(new PictureDto(), BitmapFactory.decodeFile(""));
+
+
+        Bitmap overlayBitmap = overlay(BitmapFactory.decodeFile(photoFile.getAbsolutePath()), ((BitmapDrawable) ContextCompat.getDrawable(getContext(), R.drawable.uploading_hint)).getBitmap());
+
+        final Picture temp = new Picture(new PictureDto(), overlayBitmap);
         temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds() + 1000000));//make sure it is always the first one
+
+
         pic.add(temp);
         mAdapter.notifyDataSetChanged();
         displayPicRef.putFile(photoURI)
@@ -249,8 +264,12 @@ public class Profile extends Fragment {
                             pic.remove(temp);
                             pic.add(new Picture(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName), BitmapFactory.decodeFile(photoFile.getAbsolutePath())));
                             mAdapter.notifyDataSetChanged();
+                            //Toast
+                            Toast.makeText(getContext(), "Picture posted", Toast.LENGTH_SHORT).show();
                         } else {
-//                          failed to upload img?
+                            pic.remove(temp);
+                            //Toast
+                            Toast.makeText(getContext(), "Failed to post picture, please try again later!", Toast.LENGTH_LONG).show();
                         }
                     }
                 });
@@ -322,6 +341,18 @@ public class Profile extends Fragment {
         usernameView.setText(user.getUsername());
         bioView.setText(user.getBio());
         avatarView.setImageBitmap(user.getAvatar());
+    }
+
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {
+        Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth(), bmp1.getHeight(), bmp1.getConfig());
+        Canvas canvas = new Canvas(bmOverlay);
+        canvas.drawBitmap(bmp1, new Matrix(), null);
+        float left = 110;
+        float top = 110;
+        RectF dst = new RectF(left, top, left + 220, top + 220); // width=100, height=120
+        canvas.drawBitmap(bmp2, null, dst, null);
+        canvas.drawColor(Color.argb(100, 193, 193, 193));
+        return bmOverlay;
     }
 
 }
