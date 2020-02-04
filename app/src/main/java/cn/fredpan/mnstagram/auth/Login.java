@@ -40,6 +40,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -49,8 +52,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.User;
@@ -81,12 +82,25 @@ public class Login extends AppCompatActivity {
         signUpBtn = findViewById(R.id.sign_up);
         progressBar = findViewById(R.id.progress_bar);
 
+        //init folders
+        initFolders();
+
         loginDirectly();
 
         logInListener();
         signUpRedirectionListener();
         emailFormatCheckListener();
         passwordLengthCheckListener();
+    }
+
+    /**
+     * init all the necessary folders here
+     */
+    private void initFolders() {
+//        File folder = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + ImgHelper.PIC_TEMP_PATH);
+//        if (!folder.exists()) {
+//            folder.mkdirs();
+//        }
     }
 
     private void passwordLengthCheckListener() {
@@ -156,7 +170,6 @@ public class Login extends AppCompatActivity {
                                                     for (QueryDocumentSnapshot document : task.getResult()) {
                                                         if (document.getId().equals(currUser.getUid())) {
                                                             UserDto userDto = document.toObject(UserDto.class);
-                                                            //todo avatar
                                                             User user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
                                                             Intent mainActivity = new Intent(Login.this, MainActivity.class);
                                                             mainActivity.putExtra("user", user);

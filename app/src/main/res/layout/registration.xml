@@ -29,6 +29,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_height="match_parent">
 
@@ -36,12 +37,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="11pt">
-        <ImageView
-            android:id="@+id/avatar"
-            android:layout_width="250px"
-            android:layout_height="250px"
-            android:src="@drawable/avatar"
-            ></ImageView>
+
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="300px"
+            android:layout_height="300px"
+            android:layout_marginLeft="11pt"
+            android:orientation="vertical"
+            app:cardCornerRadius="150px"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/avatar"
+                android:layout_width="300px"
+                android:layout_height="300px"
+                android:src="@drawable/avatar" />
+        </androidx.cardview.widget.CardView>
 
 
         <Button
@@ -53,7 +64,7 @@
             android:id="@+id/add_avatar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Set Display Picture"/>
+            android:text="Set Avatar" />
     </LinearLayout>
 
 

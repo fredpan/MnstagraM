@@ -31,22 +31,16 @@ package cn.fredpan.mnstagram;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -57,46 +51,67 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.io.File;
+
 import cn.fredpan.mnstagram.auth.Login;
 import cn.fredpan.mnstagram.model.User;
 import cn.fredpan.mnstagram.model.UserDto;
+import cn.fredpan.mnstagram.pic.ImgHelper;
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
-
-    private static FirebaseAuth mAuth;
-
-    FirebaseFirestore userDb;
-
+    private FirebaseAuth mAuth;
+    private StorageReference picStorage;
     User user;
-
     MenuItem logoutBtn;
-
     TextView navUsername;
-
     TextView navEmail;
+    ImageView navAvatar;
+    FirebaseFirestore db;
+    private String rootPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //Since this activity and its fragment requires info from db, the init will continue after all the necessary info is ready. See onAllInfoRetrieved for continues initialization.
+
+        // prepare all dbs
         mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
-        userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
+        db = (db == null) ? FirebaseFirestore.getInstance() : db;
+        picStorage = (picStorage == null) ? FirebaseStorage.getInstance().getReference() : picStorage;
 
         //get logged in user info
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             user = (User) getIntent().getSerializableExtra("user"); //Obtaining data
-            init();
+            initFolders();
+            loadAvatarAndInit();
         } else {
             retrieveCurrentLoginUserDataFromDb();
         }
     }
 
-    private void init() {
+    private void onAllInfoRetrived() {
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
+
         setSupportActionBar(toolbar);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -116,19 +131,40 @@ public class MainActivity extends AppCompatActivity {
         logoutBtn = menuNav.findItem(R.id.logout);
         navEmail = navHeaderView.findViewById(R.id.nav_email);
         navUsername = navHeaderView.findViewById(R.id.nav_username);
+        navAvatar = navHeaderView.findViewById(R.id.nav_avatar);
+
 
         displayUserInfo();
         logoutListener();
     }
 
+    private void initFolders() {
+        File root = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid());
+        if (!root.exists()) {
+            root.mkdirs();
+        }
+        rootPath = root.getAbsolutePath();
+
+//        File pics = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/pics");
+//        if (!pics.exists()) {
+//            pics.mkdirs();
+//        }
+//        picsPath = pics.getAbsolutePath();
+//
+//        File thumbnails = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/thumbnails");
+//        if (!thumbnails.exists()) {
+//            thumbnails.mkdirs();
+//        }
+//        thumbnailsPath = thumbnails.getAbsolutePath();
+    }
+
     private void retrieveCurrentLoginUserDataFromDb() {
-        // shouldn't be here
-        if (mAuth.getCurrentUser() == null) {
+        if (mAuth.getCurrentUser() == null) {// shouldn't be here
             Toast.makeText(MainActivity.this, getString(R.string.failed_loading_logged_in_user_info_relogin_required), Toast.LENGTH_LONG).show();
             signOut();
             throw new IllegalStateException("Accessed to the MainActivity while not login or the current user info cannot be found on mAuth.");
         } else {
-            userDb.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<QuerySnapshot> task) {
                     if (task.isSuccessful()) {
@@ -137,23 +173,41 @@ public class MainActivity extends AppCompatActivity {
                             if (document.getId().equals(currUser.getUid())) {
                                 UserDto userDto = document.toObject(UserDto.class);
                                 user = userDto.generateUser(null, currUser.getUid(), currUser.getEmail());
+                                initFolders();
+                                loadAvatarAndInit();
+                                break;
                             }
                         }
                     } else {
                         Toast.makeText(MainActivity.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
                         Log.w("LOGIN: ", "Error getting documents.", task.getException());
                     }
-                    init();
                 }
             });
         }
     }
 
-
-    private void displayUserInfo() {
-        navUsername.setText(user.getUsername());
-        navEmail.setText(user.getEmail());
+    private void loadAvatarAndInit() {
+        final File img = new File(rootPath, "displayPic.jpg");
+        if (!img.exists()) {
+            //load avatar
+            String path = "pictures/" + user.getUid() + "/" + "displayPic.jpg";
+            StorageReference displayPicRef = picStorage.child(path);
+            displayPicRef.getFile(img)
+                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            user.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
+                            onAllInfoRetrived();
+                        }
+                    });
+        } else {
+            user.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
+            onAllInfoRetrived();
+        }
     }
+
+    //listeners
 
     private void logoutListener() {
         logoutBtn.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
@@ -186,9 +240,42 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
+    //helper methods
+
+    private void displayUserInfo() {
+        navUsername.setText(user.getUsername());
+        navEmail.setText(user.getEmail());
+        navAvatar.setImageBitmap(user.getAvatar());
+        navAvatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ImgHelper.displayPreviewImg(MainActivity.this, user.getAvatar());
+            }
+        });
+    }
+
     private void signOut(){
         FirebaseAuth.getInstance().signOut();
         Intent loginActivity = new Intent(MainActivity.this, Login.class);
         MainActivity.this.startActivity(loginActivity);
     }
+
+    //Getter methods
+
+    public User getUser() {
+        return user;
+    }
+
+    public FirebaseFirestore getDb() {
+        return db;
+    }
+
+    public StorageReference getPicStorage() {
+        return picStorage;
+    }
+
+    public String getRootPath() {
+        return rootPath;
+    }
+
 }
