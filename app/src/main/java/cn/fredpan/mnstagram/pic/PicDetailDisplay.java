@@ -81,5 +81,6 @@ public class PicDetailDisplay extends AppCompatActivity {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
         System.out.println(dateFormat.format(date));
         timestamp.setText("Timestamp: " + dateFormat.format(date));
+//        timestamp.setText(picture.getTimestamp());
     }
 }
