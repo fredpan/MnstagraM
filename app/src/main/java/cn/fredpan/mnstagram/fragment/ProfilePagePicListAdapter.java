@@ -29,22 +29,31 @@
 
 package cn.fredpan.mnstagram.fragment;
 
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
 
 class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListAdapter.MyViewHolder> {
     private List<Picture> mPics;
+    private Activity activity;
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public ProfilePagePicListAdapter(List<Picture> mPics) {
+    public ProfilePagePicListAdapter(Activity activity, List<Picture> mPics) {
+        this.activity = activity;
         this.mPics = mPics;
     }
 
@@ -61,10 +70,32 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(final MyViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        holder.textView.setImageBitmap(mPics.get(position).getPic());
+        holder.imgView.setImageBitmap(mPics.get(position).getPic());
+        holder.imgView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Dialog builder = new Dialog(activity);
+                builder.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                builder.getWindow().setBackgroundDrawable(
+                        new ColorDrawable(android.graphics.Color.TRANSPARENT));
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialogInterface) {
+                        //nothing;
+                    }
+                });
+
+                ImageView imageView = new ImageView(activity);
+                imageView.setImageBitmap(mPics.get(position).getPic());
+                builder.addContentView(imageView, new RelativeLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+                builder.show();
+            }
+        });
 
     }
 
@@ -79,11 +110,11 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
     // you provide access to all the views for a data item in a view holder
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
-        public ImageView textView;
+        public ImageView imgView;
 
         public MyViewHolder(View v) {
             super(v);
-            textView = itemView.findViewById(R.id.pic_item);
+            imgView = itemView.findViewById(R.id.pic_item);
         }
     }
 

@@ -50,6 +50,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -68,11 +74,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.FileProvider;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
@@ -97,6 +98,8 @@ public class Profile extends Fragment {
     private Uri photoURI;
     private String rootPath;
     private String imgName;
+    private List<Picture> pic;
+    private File photoFile;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -179,7 +182,7 @@ public class Profile extends Fragment {
             }
             Date date = new Date();
             imgName = String.valueOf(new Timestamp(date).getSeconds());
-            File photoFile = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/" + imgName + ".jpg");
+            photoFile = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/" + imgName + ".jpg");
             photoURI = FileProvider.getUriForFile(getActivity(),
                     "cn.fredpan.mnstagram.fileprovider",
                     photoFile);
@@ -207,7 +210,7 @@ public class Profile extends Fragment {
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                uploadImg(bitmap);
+                uploadImg();
                 builder.dismiss();
             }
         });
@@ -223,7 +226,7 @@ public class Profile extends Fragment {
 
     }
 
-    private void uploadImg(Bitmap bitmap) {
+    private void uploadImg() {
         //upload to db
         db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName));
 
@@ -231,12 +234,18 @@ public class Profile extends Fragment {
         // store pic for the current registered user to storage
         String path = "pictures/" + user.getUid() + "/" + imgName + ".jpg";
         StorageReference displayPicRef = picStorage.child(path);
+        final Picture temp = new Picture(BitmapFactory.decodeFile(""));
+        pic.add(temp);
+        mAdapter.notifyDataSetChanged();
         displayPicRef.putFile(photoURI)
                 .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                         if (task.isSuccessful()) {
-
+                            System.out.println(photoURI.getPath());
+                            pic.remove(temp);
+                            pic.add(new Picture(BitmapFactory.decodeFile(photoFile.getAbsolutePath())));
+                            mAdapter.notifyDataSetChanged();
                         } else {
 //                                                                    failed to upload img?
                         }
@@ -246,22 +255,15 @@ public class Profile extends Fragment {
 
     private void initPicLists() {
 
-        final List<Picture> pic = obtainPics();
-
+        pic = new ArrayList<>();
+        pic.addAll(obtainPics());
         //Changes in content do not change the layout size of the RecyclerView
 //        recyclerView.setHasFixedSize(true);
 
-        // use a linear layout manager
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-//        recyclerView.setLayoutManager(layoutManager);
-
         // specify an adapter (see also next example)
-        mAdapter = new ProfilePagePicListAdapter(pic);
+        mAdapter = new ProfilePagePicListAdapter(getActivity(), pic);
         recyclerView.setAdapter(mAdapter);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
-//        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(),
-//                layoutManager.getOrientation());
-//        recyclerView.addItemDecoration(dividerItemDecoration);
         recyclerView.setLayoutManager(layoutManager);
         mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -269,26 +271,27 @@ public class Profile extends Fragment {
                 super.onChanged();
             }
         });
+
+        mAdapter.notifyDataSetChanged();
     }
 
     private List<Picture> obtainPics() {
         final List<String> refs = new ArrayList<>();
         final List<Picture> pics = new ArrayList<>();
-        db.collection("photos").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+        db.collection("photos").whereEqualTo("uid", user.getUid())
+                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     // get all ref
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         PictureDto pictureDto = document.toObject(PictureDto.class);
-                        if (pictureDto.getUid().equals(user.getUid())) {
-                            refs.add(pictureDto.getStorageRef());
-                        }
+                        refs.add(pictureDto.getStorageRef());
                     }
                     for (String ref : refs) {
                         File file = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref);
                         if (file.exists()) {
-                            pics.add(new Picture(BitmapFactory.decodeFile(file.getAbsolutePath())));
+                            pic.add(new Picture(BitmapFactory.decodeFile(file.getAbsolutePath())));
                             mAdapter.notifyDataSetChanged();
                         } else {
                             final File localFile = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref);
@@ -297,7 +300,7 @@ public class Profile extends Fragment {
                                     .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                                         @Override
                                         public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                                            pics.add(new Picture(BitmapFactory.decodeFile(localFile.getAbsolutePath())));
+                                            pic.add(new Picture(BitmapFactory.decodeFile(localFile.getAbsolutePath())));
                                             mAdapter.notifyDataSetChanged();
                                         }
                                     });
