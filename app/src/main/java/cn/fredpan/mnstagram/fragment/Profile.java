@@ -107,6 +107,8 @@ public class Profile extends Fragment {
     private String imgName;
     private List<Picture> pic;
     private File photoFile;
+    Toast postingPicHint;
+    private boolean takeNewPicBtnDisabled;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -121,6 +123,7 @@ public class Profile extends Fragment {
         avatarView = rootView.findViewById(R.id.profile_avatar);
         recyclerView = rootView.findViewById(R.id.my_recycler_view);
         takeNewPicBtn = rootView.findViewById(R.id.take_new_img);
+        takeNewPicBtnDisabled = false;
 
         user = ((MainActivity) getActivity()).getUser();
         db = ((MainActivity) getActivity()).getDb();
@@ -140,7 +143,14 @@ public class Profile extends Fragment {
         takeNewPicBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                dispatchTakePictureIntent();
+                if (takeNewPicBtnDisabled) {
+                    if (postingPicHint != null) {
+                        postingPicHint.cancel();
+                    }
+                    Toast.makeText(getActivity(), "Please wait for photo posted before taking a new one.", Toast.LENGTH_SHORT).show();
+                } else {
+                    dispatchTakePictureIntent();
+                }
             }
         });
     }
@@ -236,7 +246,8 @@ public class Profile extends Fragment {
 
     private void uploadImg() {
         //Toast
-        Toast.makeText(getContext(), "Posting picture...", Toast.LENGTH_LONG).show();
+        postingPicHint = Toast.makeText(getContext(), "Posting picture...", Toast.LENGTH_LONG);
+        postingPicHint.show();
 
         //upload to db
         db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName));
@@ -250,27 +261,29 @@ public class Profile extends Fragment {
         Bitmap overlayBitmap = overlay(BitmapFactory.decodeFile(photoFile.getAbsolutePath()), ((BitmapDrawable) ContextCompat.getDrawable(getContext(), R.drawable.uploading_hint)).getBitmap());
 
         final Picture temp = new Picture(new PictureDto(), overlayBitmap);
-        temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds() + 1000000));//make sure it is always the first one
-
-
+        temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds()));
         pic.add(temp);
         mAdapter.notifyDataSetChanged();
+        takeNewPicBtnDisabled = true;
         displayPicRef.putFile(photoURI)
                 .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                         if (task.isSuccessful()) {
-                            System.out.println(photoURI.getPath());
                             pic.remove(temp);
-                            pic.add(new Picture(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName), BitmapFactory.decodeFile(photoFile.getAbsolutePath())));
+                            mAdapter.notifyDataSetChanged();
+                            Picture picture = new Picture(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName), BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
+                            pic.add(picture);
                             mAdapter.notifyDataSetChanged();
                             //Toast
                             Toast.makeText(getContext(), "Picture posted", Toast.LENGTH_SHORT).show();
                         } else {
                             pic.remove(temp);
+                            mAdapter.notifyDataSetChanged();
                             //Toast
                             Toast.makeText(getContext(), "Failed to post picture, please try again later!", Toast.LENGTH_LONG).show();
                         }
+                        takeNewPicBtnDisabled = false;
                     }
                 });
     }
