@@ -46,12 +46,13 @@
     <string name="error_duplicated_email_registration">Email address already existed. Please login or sign up with another one.</string>
     <string name="error_weak_password">Password too weak. Must be at least 6 characters.</string>
     <string name="error_bad_email_addr_format">Invalid Email address format.</string>
-    <string name="error_unfixed_before_register_singular">Please first fix errors above.</string>
-    <string name="error_unfixed_before_register_plural">Please first fix error above.</string>
+    <string name="error_unfixed_before_register_singular">Please first fix error above.</string>
+    <string name="error_unfixed_before_register_plural">Please first fix errors above.</string>
     <string name="error_empty_username">Username cannot be empty</string>
     <string name="error_empty_bio">Bio cannot be empty</string>
     <string name="error_password_length_too_short">Password has at least 6 characters.</string>
     <string name="failed_read_write_image">Failed to save image. Please open read/write file permission.</string>
+    <string name="error_empty_avatar">Please take and crop the avatar.</string>
 
 
 </resources>

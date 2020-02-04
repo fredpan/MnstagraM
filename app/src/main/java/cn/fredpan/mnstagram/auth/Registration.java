@@ -270,6 +270,9 @@ public class Registration extends AppCompatActivity {
                         bioView.setError(getString(R.string.error_empty_bio));
                         hasError = true;
                     }
+                    if (downScaledAvatarPath == null) {
+                        hasError = true;
+                    }
 
                     if (!hasError) {
                         register(user, password);
@@ -281,8 +284,13 @@ public class Registration extends AppCompatActivity {
                         errorCtr = (matchPasswordView.getError() == null) ? errorCtr : errorCtr + 1;
                         errorCtr = (usernameView.getError() == null) ? errorCtr : errorCtr + 1;
                         errorCtr = (bioView.getError() == null) ? errorCtr : errorCtr + 1;
-                        String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
-                        Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
+                        errorCtr = (downScaledAvatarPath == null) ? errorCtr : errorCtr + 1;
+                        String msg = (errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
+                        if (downScaledAvatarPath == null && errorCtr <= 1) {
+                            Toast.makeText(Registration.this, getString(R.string.error_empty_avatar), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
+                        }
                     }
                 } else {
                     progressBar.setVisibility(View.INVISIBLE);
@@ -292,8 +300,13 @@ public class Registration extends AppCompatActivity {
                     errorCtr = (matchPasswordView.getError() == null) ? errorCtr : errorCtr + 1;
                     errorCtr = (usernameView.getError() == null) ? errorCtr : errorCtr + 1;
                     errorCtr = (bioView.getError() == null) ? errorCtr : errorCtr + 1;
-                    String msg = !(errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
-                    Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
+                    errorCtr = (downScaledAvatarPath == null) ? errorCtr : errorCtr + 1;
+                    String msg = (errorCtr <= 1) ? getString(R.string.error_unfixed_before_register_singular) : getString(R.string.error_unfixed_before_register_plural);//not all false -> one is right -> use singular.
+                    if (downScaledAvatarPath == null && errorCtr <= 1) {
+                        Toast.makeText(Registration.this, getString(R.string.error_empty_avatar), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(Registration.this, msg, Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
@@ -391,22 +404,6 @@ public class Registration extends AppCompatActivity {
                         }
                     }
                 });
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "displayPic";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-//        avatarPath = image.getAbsolutePath();
-        return image;
     }
 
     private void dispatchTakePictureIntent() {
