@@ -37,6 +37,7 @@ public class Picture implements Comparable<Picture> {
     private String uid;
     private String storageRef;
     private String timestamp;
+    private String caption;
 
     public Picture() {
     }
@@ -53,6 +54,7 @@ public class Picture implements Comparable<Picture> {
         this.uid = pictureDto.getUid();
         this.storageRef = pictureDto.getStorageRef();
         this.timestamp = pictureDto.getTimestamp();
+        this.caption = pictureDto.getCaption();
     }
 
     public Bitmap getPic() {
@@ -93,5 +95,13 @@ public class Picture implements Comparable<Picture> {
             return 0;
         }
         return Integer.valueOf(picture.getTimestamp()).compareTo(Integer.valueOf(getTimestamp()));
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
     }
 }

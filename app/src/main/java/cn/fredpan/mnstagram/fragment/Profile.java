@@ -52,6 +52,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -110,6 +111,7 @@ public class Profile extends Fragment {
     private File photoFile;
     Toast postingPicHint;
     private boolean takeNewPicBtnDisabled;
+    private EditText newPicCaption;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -233,6 +235,8 @@ public class Profile extends Fragment {
 
         Button cancelBtn = builder.findViewById(R.id.confirm_pic_taken_cancel);
 
+        newPicCaption = builder.findViewById(R.id.new_pic_caption);
+
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -258,7 +262,7 @@ public class Profile extends Fragment {
         postingPicHint.show();
 
         //upload to db
-        db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName));
+        db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString()));
 
         //upload to storage
         // store pic for the current registered user to storage
@@ -280,7 +284,7 @@ public class Profile extends Fragment {
                         if (task.isSuccessful()) {
                             pic.remove(temp);
                             mAdapter.notifyDataSetChanged();
-                            Picture picture = new Picture(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName), BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
+                            Picture picture = new Picture(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString()), BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
                             pic.add(picture);
                             mAdapter.notifyDataSetChanged();
                             //Toast

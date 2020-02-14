@@ -35,14 +35,16 @@ public class PictureDto implements Serializable {
     private String uid;
     private String storageRef;
     private String timestamp;
+    private String caption;
 
     public PictureDto() {
     }
 
-    public PictureDto(String uid, String storageRef, String timestamp) {
+    public PictureDto(String uid, String storageRef, String timestamp, String caption) {
         this.uid = uid;
         this.storageRef = storageRef;
         this.timestamp = timestamp;
+        this.caption = caption;
     }
 
     public String getUid() {
@@ -67,5 +69,13 @@ public class PictureDto implements Serializable {
 
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
     }
 }
