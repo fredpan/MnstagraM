@@ -52,8 +52,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -112,6 +114,9 @@ public class Profile extends Fragment {
     Toast postingPicHint;
     private boolean takeNewPicBtnDisabled;
     private EditText newPicCaption;
+    private Switch autoHashtags;
+    private EditText customHashtag;
+    private String hashtag;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -235,7 +240,25 @@ public class Profile extends Fragment {
 
         Button cancelBtn = builder.findViewById(R.id.confirm_pic_taken_cancel);
 
+        autoHashtags = builder.findViewById(R.id.auto_hashtags);
+
+        customHashtag = builder.findViewById(R.id.custom_hashtag);
+
         newPicCaption = builder.findViewById(R.id.new_pic_caption);
+
+        autoHashtags.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    customHashtag.setVisibility(View.INVISIBLE);
+                    //auto generate hashtag.
+                    //todo fake
+                    hashtag = "Hello World";
+                } else {
+                    hashtag = customHashtag.getText().toString();
+                }
+            }
+        });
 
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -261,48 +284,59 @@ public class Profile extends Fragment {
         postingPicHint = Toast.makeText(getContext(), "Posting picture...", Toast.LENGTH_LONG);
         postingPicHint.show();
 
-        //upload to db
-        db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString())).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-            @Override
-            public void onComplete(@NonNull final Task<DocumentReference> photoDbTask) {
-                //upload to storage
-                // store pic for the current registered user to storage
-                String path = "pictures/" + user.getUid() + "/" + imgName + ".jpg";
-                StorageReference displayPicRef = picStorage.child(path);
 
+        //upload to storage
+        // store pic for the current registered user to storage
+        String path = "pictures/" + user.getUid() + "/" + imgName + ".jpg";
+        StorageReference displayPicRef = picStorage.child(path);
 
-                Bitmap overlayBitmap = overlay(BitmapFactory.decodeFile(photoFile.getAbsolutePath()), ((BitmapDrawable) ContextCompat.getDrawable(getContext(), R.drawable.uploading_hint)).getBitmap());
+        Bitmap overlayBitmap = overlay(BitmapFactory.decodeFile(photoFile.getAbsolutePath()), ((BitmapDrawable) ContextCompat.getDrawable(getContext(), R.drawable.uploading_hint)).getBitmap());
+        final Picture temp = new Picture(new PictureDto(), overlayBitmap);//the temp img does not have uid or pid
+        temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds()));
+        pic.add(temp);
+        mAdapter.notifyDataSetChanged();
+        takeNewPicBtnDisabled = true;
 
-                final Picture temp = new Picture(new PictureDto(), overlayBitmap);//the temp img does not have uid or pid
-                temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds()));
-                pic.add(temp);
-                mAdapter.notifyDataSetChanged();
-                takeNewPicBtnDisabled = true;
-                displayPicRef.putFile(photoURI)
-                        .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    pic.remove(temp);
-                                    mAdapter.notifyDataSetChanged();
-                                    PictureDto pictureDto = new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString());
-                                    pictureDto.setPid(photoDbTask.getResult().getId());
-                                    Picture picture = new Picture(pictureDto, BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
-                                    pic.add(picture);
-                                    mAdapter.notifyDataSetChanged();
-                                    //Toast
-                                    Toast.makeText(getContext(), "Picture posted", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    pic.remove(temp);
-                                    mAdapter.notifyDataSetChanged();
-                                    //Toast
-                                    Toast.makeText(getContext(), "Failed to post picture, please try again later!", Toast.LENGTH_LONG).show();
+        //upload to FireBase storage
+        //upload img to storage first then update db. This way, when db failed, the img is just redundant on the storage, data is sill consistent.
+        displayPicRef.putFile(photoURI)
+                .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            //upload to db
+                            db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString())).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentReference> photoDbTask) {
+                                    if (photoDbTask.isSuccessful()) {
+                                        //upload to db completed
+                                        pic.remove(temp);
+                                        mAdapter.notifyDataSetChanged();
+                                        PictureDto pictureDto = new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString());
+                                        pictureDto.setPid(photoDbTask.getResult().getId());
+                                        Picture picture = new Picture(pictureDto, BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
+                                        pic.add(picture);
+                                        mAdapter.notifyDataSetChanged();
+                                        //Toast
+                                        Toast.makeText(getContext(), "Picture posted", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        pic.remove(temp);
+                                        mAdapter.notifyDataSetChanged();
+                                        //Toast
+                                        Toast.makeText(getContext(), "Failed to post picture, please try again later!", Toast.LENGTH_LONG).show();
+                                    }
+                                    takeNewPicBtnDisabled = false;
                                 }
-                                takeNewPicBtnDisabled = false;
-                            }
-                        });
-            }
-        });
+                            });
+                        } else {
+                            pic.remove(temp);
+                            mAdapter.notifyDataSetChanged();
+                            //Toast
+                            Toast.makeText(getContext(), "Failed to post picture, please try again later!", Toast.LENGTH_LONG).show();
+                        }
+                        takeNewPicBtnDisabled = false;
+                    }
+                });
 
 
     }
