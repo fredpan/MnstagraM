@@ -30,6 +30,7 @@
 package cn.fredpan.mnstagram.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class PictureDto implements Serializable {
     private String uid;
@@ -37,15 +38,25 @@ public class PictureDto implements Serializable {
     private String timestamp;
     private String caption;
     private String pid;
+    private List<String> hashtags;
 
     public PictureDto() {
     }
 
-    public PictureDto(String uid, String storageRef, String timestamp, String caption) {
+    public PictureDto(String uid, String storageRef, String timestamp, String caption, List<String> hashtags) {
         this.uid = uid;
         this.storageRef = storageRef;
         this.timestamp = timestamp;
         this.caption = caption;
+        this.hashtags = hashtags;
+    }
+
+    public List<String> getHashtags() {
+        return hashtags;
+    }
+
+    public void setHashtags(List<String> hashtags) {
+        this.hashtags = hashtags;
     }
 
     public String getUid() {

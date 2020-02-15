@@ -87,7 +87,7 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
                     String path = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + mPics.get(position).getStorageRef();
                     picDetailActivity.putExtra("path", path);
                     Picture picture = mPics.get(position);
-                    PictureDto pictureDto = new PictureDto(picture.getUid(), picture.getStorageRef(), picture.getTimestamp(), picture.getCaption());
+                    PictureDto pictureDto = new PictureDto(picture.getUid(), picture.getStorageRef(), picture.getTimestamp(), picture.getCaption(), picture.getHashtags());
                     pictureDto.setPid(picture.getPid());
                     picDetailActivity.putExtra("pictureDto", pictureDto);
                     User copyUser = new User();

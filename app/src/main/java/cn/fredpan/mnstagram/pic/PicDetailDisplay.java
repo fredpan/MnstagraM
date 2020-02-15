@@ -201,6 +201,13 @@ public class PicDetailDisplay extends AppCompatActivity {
         final TextView caption = findViewById(R.id.caption_display);
         caption.setText(picture.getCaption());
 
+        final TextView hashtags = findViewById(R.id.hashtags);
+        String hashtagStr = "";
+        for (String hashtag : picture.getHashtags()) {
+            hashtagStr += hashtag + " ";
+        }
+        hashtags.setText(hashtagStr);
+
         final RecyclerView comments = findViewById(R.id.comments_list);
 
         final EditText newComment = findViewById(R.id.new_comment);

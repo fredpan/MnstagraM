@@ -31,6 +31,8 @@ package cn.fredpan.mnstagram.model;
 
 import android.graphics.Bitmap;
 
+import java.util.List;
+
 public class Picture implements Comparable<Picture> {
 
     private Bitmap pic;
@@ -39,16 +41,18 @@ public class Picture implements Comparable<Picture> {
     private String storageRef;
     private String timestamp;
     private String caption;
+    List<String> hashtags;
 
     public Picture() {
     }
 
-    public Picture(Bitmap pic, String uid, String storageRef, String timestamp, String pid) {
+    public Picture(Bitmap pic, String uid, String storageRef, String timestamp, String pid, List<String> hashtags) {
         this.pic = pic;
         this.uid = uid;
         this.storageRef = storageRef;
         this.timestamp = timestamp;
         this.pid = pid;
+        this.hashtags = hashtags;
     }
 
     public Picture(PictureDto pictureDto, Bitmap pic) {
@@ -58,6 +62,15 @@ public class Picture implements Comparable<Picture> {
         this.timestamp = pictureDto.getTimestamp();
         this.caption = pictureDto.getCaption();
         this.pid = pictureDto.getPid();
+        this.hashtags = pictureDto.getHashtags();
+    }
+
+    public List<String> getHashtags() {
+        return hashtags;
+    }
+
+    public void setHashtags(List<String> hashtags) {
+        this.hashtags = hashtags;
     }
 
     public Bitmap getPic() {

@@ -69,6 +69,11 @@
                 android:padding="11dp" />
 
             <TextView
+                android:id="@+id/hashtags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
                 android:id="@+id/caption_display"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />

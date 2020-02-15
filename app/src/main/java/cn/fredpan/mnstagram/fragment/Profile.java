@@ -116,7 +116,6 @@ public class Profile extends Fragment {
     private EditText newPicCaption;
     private Switch autoHashtags;
     private EditText customHashtag;
-    private String hashtag;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -251,11 +250,8 @@ public class Profile extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     customHashtag.setVisibility(View.INVISIBLE);
-                    //auto generate hashtag.
-                    //todo fake
-                    hashtag = "Hello World";
                 } else {
-                    hashtag = customHashtag.getText().toString();
+                    customHashtag.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -263,7 +259,9 @@ public class Profile extends Fragment {
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                uploadImg();
+                List<String> hashtag = new ArrayList<>();
+                updateHashtags(hashtag);
+                uploadImg(hashtag);
                 builder.dismiss();
             }
         });
@@ -279,10 +277,23 @@ public class Profile extends Fragment {
 
     }
 
-    private void uploadImg() {
+    private void updateHashtags(List<String> hashtag) {
+        hashtag.clear();
+        if (autoHashtags.isChecked()) {
+            //auto generate hashtag.
+            //todo fake
+            hashtag.add("Hello World");
+        } else {
+            //todo #?
+            hashtag.add(customHashtag.getText().toString());
+        }
+    }
+
+    private void uploadImg(final List<String> hashtag) {
         //Toast
         postingPicHint = Toast.makeText(getContext(), "Posting picture...", Toast.LENGTH_LONG);
         postingPicHint.show();
+
 
 
         //upload to storage
@@ -305,14 +316,14 @@ public class Profile extends Fragment {
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                         if (task.isSuccessful()) {
                             //upload to db
-                            db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString())).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                            db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString(), hashtag)).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                                 @Override
                                 public void onComplete(@NonNull Task<DocumentReference> photoDbTask) {
                                     if (photoDbTask.isSuccessful()) {
                                         //upload to db completed
                                         pic.remove(temp);
                                         mAdapter.notifyDataSetChanged();
-                                        PictureDto pictureDto = new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString());
+                                        PictureDto pictureDto = new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString(), hashtag);
                                         pictureDto.setPid(photoDbTask.getResult().getId());
                                         Picture picture = new Picture(pictureDto, BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
                                         pic.add(picture);
