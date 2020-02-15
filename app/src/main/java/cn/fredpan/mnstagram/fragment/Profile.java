@@ -60,6 +60,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -68,6 +69,10 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.label.FirebaseVisionImageLabel;
+import com.google.firebase.ml.vision.label.FirebaseVisionImageLabeler;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -75,6 +80,7 @@ import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -116,6 +122,8 @@ public class Profile extends Fragment {
     private EditText newPicCaption;
     private Switch autoHashtags;
     private EditText customHashtag;
+    private Bitmap resultBitmap;
+    private FirebaseVisionImageLabeler labeler;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -123,6 +131,7 @@ public class Profile extends Fragment {
                 R.layout.profile, container, false);
 
         userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
+        labeler = (labeler == null) ? FirebaseVision.getInstance().getCloudImageLabeler() : labeler;
 
         //basic components
         usernameView = rootView.findViewById(R.id.username);
@@ -191,8 +200,8 @@ public class Profile extends Fragment {
         }
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             try {
-                Bitmap bitmap = ImgHelper.getCroppedImg(resultCode, data);
-                Bitmap downScaledBitmap = ImgHelper.getDownScaledImg(bitmap);
+                resultBitmap = ImgHelper.getCroppedImg(resultCode, data);
+                Bitmap downScaledBitmap = ImgHelper.getDownScaledImg(resultBitmap);
                 ImgHelper.saveImg(rootPath, imgName, downScaledBitmap, 100);// It overrides the original one, the one camera took
                 showImage(downScaledBitmap);
             } catch (Exception e) {
@@ -259,10 +268,47 @@ public class Profile extends Fragment {
         confirmBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                List<String> hashtag = new ArrayList<>();
-                updateHashtags(hashtag);
-                uploadImg(hashtag);
-                builder.dismiss();
+                final List<String> hashtag = new ArrayList<>();
+
+                if (autoHashtags.isChecked()) {
+                    //auto generate hashtag.
+                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(resultBitmap);
+                    labeler.processImage(image)
+                            .addOnSuccessListener(new OnSuccessListener<List<FirebaseVisionImageLabel>>() {
+                                @Override
+                                public void onSuccess(List<FirebaseVisionImageLabel> labels) {
+                                    for (FirebaseVisionImageLabel label : labels) {
+                                        String text = label.getText();
+                                        String entityId = label.getEntityId();
+                                        float confidence = label.getConfidence();
+                                        /*Ex:
+                                            text: Cat
+                                            entityId: /m/01yrx
+                                            confidence: 0.98893553
+                                         */
+                                        if (confidence >= 0.7) {
+                                            hashtag.add(text);
+                                        }
+                                    }
+                                    uploadImg(hashtag);
+                                    builder.dismiss();
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    // Task failed with an exception
+                                    Toast.makeText(getContext(), "Auto generate hashtags failed. Please try again", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                } else {
+                    String input = customHashtag.getText().toString();
+                    String[] result = input.split(" ");
+                    hashtag.addAll(Arrays.asList(result));
+                    uploadImg(hashtag);
+                    builder.dismiss();
+                }
+
             }
         });
 
@@ -275,18 +321,6 @@ public class Profile extends Fragment {
 
         builder.show();
 
-    }
-
-    private void updateHashtags(List<String> hashtag) {
-        hashtag.clear();
-        if (autoHashtags.isChecked()) {
-            //auto generate hashtag.
-            //todo fake
-            hashtag.add("Hello World");
-        } else {
-            //todo #?
-            hashtag.add(customHashtag.getText().toString());
-        }
     }
 
     private void uploadImg(final List<String> hashtag) {

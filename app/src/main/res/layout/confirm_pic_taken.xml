@@ -94,9 +94,8 @@
                     android:id="@+id/custom_hashtag"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Enter your own hash tag"
-                    android:lines="1"
-                    android:visibility="invisible" />
+                    android:hint="hashtags: separate by space"
+                    android:lines="1" />
             </LinearLayout>
 
             <LinearLayout
