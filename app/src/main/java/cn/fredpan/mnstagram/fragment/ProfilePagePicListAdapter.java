@@ -36,6 +36,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -78,32 +79,32 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         holder.imgView.setImageBitmap(mPics.get(position).getPic());
-//        holder.imgView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                ImgHelper.displayPicDetail(activity, mPics.get(position), user, userDb);
-//            }
-//        });
         holder.imgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent picDetailActivity = new Intent(activity.getApplicationContext(), PicDetailDisplay.class);
-                String path = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + mPics.get(position).getStorageRef();
-                picDetailActivity.putExtra("path", path);
-                Picture picture = mPics.get(position);
-                PictureDto pictureDto = new PictureDto(picture.getUid(), picture.getStorageRef(), picture.getTimestamp(), picture.getCaption());
-                picDetailActivity.putExtra("pictureDto", pictureDto);
-                User copyUser = new User();
-                copyUser.setUid(user.getUid());
-                copyUser.setAvatar(null);
-                copyUser.setBio(user.getBio());
-                copyUser.setEmail(user.getEmail());
-                copyUser.setUsername(user.getUsername());
-                picDetailActivity.putExtra("user", copyUser);
-                activity.startActivity(picDetailActivity);
-//                return true;
+                if (mPics.get(position).getPid() != null) {// the temp img has uid == null
+                    Intent picDetailActivity = new Intent(activity.getApplicationContext(), PicDetailDisplay.class);
+                    String path = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + mPics.get(position).getStorageRef();
+                    picDetailActivity.putExtra("path", path);
+                    Picture picture = mPics.get(position);
+                    PictureDto pictureDto = new PictureDto(picture.getUid(), picture.getStorageRef(), picture.getTimestamp(), picture.getCaption());
+                    pictureDto.setPid(picture.getPid());
+                    picDetailActivity.putExtra("pictureDto", pictureDto);
+                    User copyUser = new User();
+                    copyUser.setUid(user.getUid());
+                    copyUser.setAvatar(null);
+                    copyUser.setBio(user.getBio());
+                    copyUser.setEmail(user.getEmail());
+                    copyUser.setUsername(user.getUsername());
+                    picDetailActivity.putExtra("user", copyUser);
+                    activity.startActivity(picDetailActivity);
+                } else {
+                    Toast.makeText(activity, "Picture is posting. Please wait...", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
+
     }
 
     // Return the size of your dataset (invoked by the layout manager)

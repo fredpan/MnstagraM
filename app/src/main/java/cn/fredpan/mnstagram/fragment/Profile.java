@@ -273,7 +273,7 @@ public class Profile extends Fragment {
 
                 Bitmap overlayBitmap = overlay(BitmapFactory.decodeFile(photoFile.getAbsolutePath()), ((BitmapDrawable) ContextCompat.getDrawable(getContext(), R.drawable.uploading_hint)).getBitmap());
 
-                final Picture temp = new Picture(new PictureDto(), overlayBitmap);
+                final Picture temp = new Picture(new PictureDto(), overlayBitmap);//the temp img does not have uid or pid
                 temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds()));
                 pic.add(temp);
                 mAdapter.notifyDataSetChanged();

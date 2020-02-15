@@ -30,6 +30,8 @@
 package cn.fredpan.mnstagram.pic;
 
 import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
@@ -61,9 +63,12 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Comment;
 import cn.fredpan.mnstagram.model.CommentDto;
@@ -77,11 +82,18 @@ public class PicDetailDisplay extends AppCompatActivity {
     private FirebaseFirestore db;
     private StorageReference picStorage;
     private User user;
+    ImageView deletePicBtn;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pic_detail_display);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        deletePicBtn = findViewById(R.id.delete_post);
+        deletePicBtn.setVisibility(View.INVISIBLE);
+
+        setSupportActionBar(toolbar);
+
 
         db = (db == null) ? FirebaseFirestore.getInstance() : db;
         picStorage = (picStorage == null) ? FirebaseStorage.getInstance().getReference() : picStorage;
@@ -98,7 +110,87 @@ public class PicDetailDisplay extends AppCompatActivity {
             loadAvatarAndInit(getExternalFilesDir(Environment.DIRECTORY_PICTURES).getPath());
         }
         assert picture != null;
+        toolbar.setTitle(user.getUsername() + "'s post");
         displayInfo();
+        enablePicDelete();
+    }
+
+    private void enablePicDelete() {
+        //check if curr user is the owner
+        if (picture.getUid().equals(user.getUid())) {
+            deletePicBtn.setVisibility(View.VISIBLE);
+            deletePicBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(PicDetailDisplay.this);
+                    builder.setMessage("Delete the post?")
+                            .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    deletePic();
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    // Create the AlertDialog object and return it
+                    AlertDialog logoutConfirm = builder.create();
+                    logoutConfirm.show();
+                }
+            });
+        }
+    }
+
+    private void deletePic() {
+        final Toast deletingPic = Toast.makeText(PicDetailDisplay.this, "Deleting post...", Toast.LENGTH_LONG);
+        deletingPic.show();
+        //delete from pic reference db
+        db.collection("photos").document(picture.getPid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+
+                    //delete pic from storage
+                    picStorage.child("pictures/" + picture.getStorageRef()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+
+                                //delete from comment db
+                                db.collection("comments").whereEqualTo("pid", picture.getPid()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                        if (task.isSuccessful()) {
+                                            if (task.getResult().size() == 0) {
+                                                deletingPic.cancel();
+                                                Toast.makeText(PicDetailDisplay.this, "Post deleted", Toast.LENGTH_LONG).show();
+                                                Intent mainActivity = new Intent(PicDetailDisplay.this, MainActivity.class);
+                                                PicDetailDisplay.this.startActivity(mainActivity);
+                                            } else {
+                                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                                    db.collection("comments").document(document.getId()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            deletingPic.cancel();
+                                                            Toast.makeText(PicDetailDisplay.this, "Post deleted", Toast.LENGTH_LONG).show();
+                                                            Intent mainActivity = new Intent(PicDetailDisplay.this, MainActivity.class);
+                                                            PicDetailDisplay.this.startActivity(mainActivity);
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    Toast.makeText(PicDetailDisplay.this, "Failed to delete the post, please try again later", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     private void displayInfo() {
