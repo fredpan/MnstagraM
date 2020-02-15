@@ -35,22 +35,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import androidx.recyclerview.widget.RecyclerView;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
+import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
+import cn.fredpan.mnstagram.model.User;
 import cn.fredpan.mnstagram.pic.ImgHelper;
 
 class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListAdapter.MyViewHolder> {
     private List<Picture> mPics;
     private Activity activity;
+    FirebaseFirestore userDb;
+    User user;
 
-    // Provide a suitable constructor (depends on the kind of dataset)
-    public ProfilePagePicListAdapter(Activity activity, List<Picture> mPics) {
-        this.activity = activity;
+    public ProfilePagePicListAdapter(List<Picture> mPics, Activity activity, FirebaseFirestore userDb, User user) {
         this.mPics = mPics;
+        this.activity = activity;
+        this.userDb = userDb;
+        this.user = user;
     }
 
     // Create new views (invoked by the layout manager)
@@ -73,7 +78,7 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
         holder.imgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ImgHelper.displayPicDetail(activity, mPics.get(position));
+                ImgHelper.displayPicDetail(activity, mPics.get(position), user, userDb);
             }
         });
 //        holder.imgView.setOnLongClickListener(new View.OnLongClickListener() {

@@ -36,6 +36,7 @@ public class PictureDto implements Serializable {
     private String storageRef;
     private String timestamp;
     private String caption;
+    private String pid;
 
     public PictureDto() {
     }
@@ -77,5 +78,13 @@ public class PictureDto implements Serializable {
 
     public void setCaption(String caption) {
         this.caption = caption;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }

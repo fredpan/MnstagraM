@@ -32,12 +32,21 @@ package cn.fredpan.mnstagram.model;
 public class CommentDto {
     private String uid;
     private String comment;
-    private String timeStamp;
+    private long timeStamp;
+    private String pid;
 
-    public CommentDto(String uid, String comment, String timeStamp) {
+    public CommentDto(String uid, String comment, long timeStamp, String pid) {
         this.uid = uid;
         this.comment = comment;
         this.timeStamp = timeStamp;
+        this.pid = pid;
+    }
+
+    public CommentDto(Comment comment, String pid) {
+        this.uid = comment.getUser().getUid();
+        this.comment = comment.getComment();
+        this.timeStamp = comment.getTimeStamp().getTime();
+        this.pid = pid;
     }
 
     public CommentDto() {
@@ -59,11 +68,19 @@ public class CommentDto {
         this.comment = comment;
     }
 
-    public String getTimeStamp() {
+    public long getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(String timeStamp) {
+    public void setTimeStamp(long timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }

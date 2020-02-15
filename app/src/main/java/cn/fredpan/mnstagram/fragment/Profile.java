@@ -57,18 +57,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -83,6 +77,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
@@ -262,42 +262,49 @@ public class Profile extends Fragment {
         postingPicHint.show();
 
         //upload to db
-        db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString()));
+        db.collection("photos/").add(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString())).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+            @Override
+            public void onComplete(@NonNull final Task<DocumentReference> photoDbTask) {
+                //upload to storage
+                // store pic for the current registered user to storage
+                String path = "pictures/" + user.getUid() + "/" + imgName + ".jpg";
+                StorageReference displayPicRef = picStorage.child(path);
 
-        //upload to storage
-        // store pic for the current registered user to storage
-        String path = "pictures/" + user.getUid() + "/" + imgName + ".jpg";
-        StorageReference displayPicRef = picStorage.child(path);
+
+                Bitmap overlayBitmap = overlay(BitmapFactory.decodeFile(photoFile.getAbsolutePath()), ((BitmapDrawable) ContextCompat.getDrawable(getContext(), R.drawable.uploading_hint)).getBitmap());
+
+                final Picture temp = new Picture(new PictureDto(), overlayBitmap);
+                temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds()));
+                pic.add(temp);
+                mAdapter.notifyDataSetChanged();
+                takeNewPicBtnDisabled = true;
+                displayPicRef.putFile(photoURI)
+                        .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    pic.remove(temp);
+                                    mAdapter.notifyDataSetChanged();
+                                    PictureDto pictureDto = new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString());
+                                    pictureDto.setPid(photoDbTask.getResult().getId());
+                                    Picture picture = new Picture(pictureDto, BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
+                                    pic.add(picture);
+                                    mAdapter.notifyDataSetChanged();
+                                    //Toast
+                                    Toast.makeText(getContext(), "Picture posted", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    pic.remove(temp);
+                                    mAdapter.notifyDataSetChanged();
+                                    //Toast
+                                    Toast.makeText(getContext(), "Failed to post picture, please try again later!", Toast.LENGTH_LONG).show();
+                                }
+                                takeNewPicBtnDisabled = false;
+                            }
+                        });
+            }
+        });
 
 
-        Bitmap overlayBitmap = overlay(BitmapFactory.decodeFile(photoFile.getAbsolutePath()), ((BitmapDrawable) ContextCompat.getDrawable(getContext(), R.drawable.uploading_hint)).getBitmap());
-
-        final Picture temp = new Picture(new PictureDto(), overlayBitmap);
-        temp.setTimestamp(String.valueOf(new Timestamp(new Date()).getSeconds()));
-        pic.add(temp);
-        mAdapter.notifyDataSetChanged();
-        takeNewPicBtnDisabled = true;
-        displayPicRef.putFile(photoURI)
-                .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            pic.remove(temp);
-                            mAdapter.notifyDataSetChanged();
-                            Picture picture = new Picture(new PictureDto(user.getUid(), user.getUid() + "/" + imgName + ".jpg", imgName, newPicCaption.getText().toString()), BitmapFactory.decodeFile(photoFile.getAbsolutePath()));
-                            pic.add(picture);
-                            mAdapter.notifyDataSetChanged();
-                            //Toast
-                            Toast.makeText(getContext(), "Picture posted", Toast.LENGTH_SHORT).show();
-                        } else {
-                            pic.remove(temp);
-                            mAdapter.notifyDataSetChanged();
-                            //Toast
-                            Toast.makeText(getContext(), "Failed to post picture, please try again later!", Toast.LENGTH_LONG).show();
-                        }
-                        takeNewPicBtnDisabled = false;
-                    }
-                });
     }
 
     private void initPicLists() {
@@ -308,7 +315,7 @@ public class Profile extends Fragment {
 //        recyclerView.setHasFixedSize(true);
 
         // specify an adapter (see also next example)
-        mAdapter = new ProfilePagePicListAdapter(getActivity(), pic);
+        mAdapter = new ProfilePagePicListAdapter(pic, getActivity(), db, user);
         recyclerView.setAdapter(mAdapter);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
         recyclerView.setLayoutManager(layoutManager);
@@ -333,6 +340,7 @@ public class Profile extends Fragment {
                     // get all ref
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         PictureDto pictureDto = document.toObject(PictureDto.class);
+                        pictureDto.setPid(document.getId());
                         refs.add(pictureDto);
                     }
                     for (final PictureDto ref : refs) {

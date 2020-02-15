@@ -31,8 +31,9 @@ package cn.fredpan.mnstagram.model;
 
 import java.util.Date;
 
-public class Comment {
+public class Comment implements Comparable<Comment> {
     private User user;
+    private Picture picture;
     private String comment;
     private Date timeStamp;
 
@@ -40,8 +41,9 @@ public class Comment {
     public Comment() {
     }
 
-    public Comment(User user, String comment, Date timeStamp) {
+    public Comment(User user, Picture picture, String comment, Date timeStamp) {
         this.user = user;
+        this.picture = picture;
         this.comment = comment;
         this.timeStamp = timeStamp;
     }
@@ -68,5 +70,21 @@ public class Comment {
 
     public void setTimeStamp(Date timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    public Picture getPicture() {
+        return picture;
+    }
+
+    public void setPicture(Picture picture) {
+        this.picture = picture;
+    }
+
+    @Override
+    public int compareTo(Comment comment) {
+        if (getTimeStamp() == null || comment.getTimeStamp() == null) {
+            return 0;
+        }
+        return Long.compare(comment.getTimeStamp().getTime(), getTimeStamp().getTime());
     }
 }

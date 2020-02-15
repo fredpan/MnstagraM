@@ -35,6 +35,7 @@ public class Picture implements Comparable<Picture> {
 
     private Bitmap pic;
     private String uid;
+    private String pid;
     private String storageRef;
     private String timestamp;
     private String caption;
@@ -42,11 +43,12 @@ public class Picture implements Comparable<Picture> {
     public Picture() {
     }
 
-    public Picture(Bitmap pic, String uid, String storageRef, String timestamp) {
+    public Picture(Bitmap pic, String uid, String storageRef, String timestamp, String pid) {
         this.pic = pic;
         this.uid = uid;
         this.storageRef = storageRef;
         this.timestamp = timestamp;
+        this.pid = pid;
     }
 
     public Picture(PictureDto pictureDto, Bitmap pic) {
@@ -55,6 +57,7 @@ public class Picture implements Comparable<Picture> {
         this.storageRef = pictureDto.getStorageRef();
         this.timestamp = pictureDto.getTimestamp();
         this.caption = pictureDto.getCaption();
+        this.pid = pictureDto.getPid();
     }
 
     public Bitmap getPic() {
@@ -103,5 +106,13 @@ public class Picture implements Comparable<Picture> {
 
     public void setCaption(String caption) {
         this.caption = caption;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }
