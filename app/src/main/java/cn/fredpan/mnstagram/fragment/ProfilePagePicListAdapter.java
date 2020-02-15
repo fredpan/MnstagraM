@@ -73,7 +73,7 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
         holder.imgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ImgHelper.displayPreviewImg(activity, mPics.get(position).getPic());
+                ImgHelper.displayPicDetail(activity, mPics.get(position));
             }
         });
 //        holder.imgView.setOnLongClickListener(new View.OnLongClickListener() {

@@ -38,10 +38,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
@@ -50,6 +55,9 @@ import com.theartofdev.edmodo.cropper.CropImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import cn.fredpan.mnstagram.R;
+import cn.fredpan.mnstagram.model.Picture;
 
 public class ImgHelper {
 
@@ -142,6 +150,43 @@ public class ImgHelper {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         builder.show();
+    }
+
+    public static void displayPicDetail(Activity activity, Picture picture) {
+        final Dialog builder = new Dialog(activity);
+        builder.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        builder.getWindow().setBackgroundDrawable(
+                new ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+        builder.setContentView(R.layout.pic_detail);
+
+        ImageView imageView = builder.findViewById(R.id.pic_display);
+        imageView.setImageBitmap(picture.getPic());
+
+        TextView caption = builder.findViewById(R.id.caption_display);
+        caption.setText(picture.getCaption());
+
+        LinearLayout comments = builder.findViewById(R.id.comments_list);
+
+        final EditText newComment = builder.findViewById(R.id.new_comment);
+
+        final Button submitComment = builder.findViewById(R.id.submit_comment);
+
+        //submit comment
+        submitComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                submitComment(newComment.getText().toString());
+            }
+        });
+
+//        comments.addChildrenForAccessibility(null);
+
+        builder.show();
+    }
+
+    private static void submitComment(String comment) {
+
     }
 
     private static Bitmap downScaleImg(Bitmap originPic, int width, int height){
