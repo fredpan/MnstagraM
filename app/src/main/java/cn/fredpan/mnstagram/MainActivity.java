@@ -42,16 +42,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -67,6 +57,15 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import cn.fredpan.mnstagram.auth.Login;
 import cn.fredpan.mnstagram.model.User;
 import cn.fredpan.mnstagram.model.UserDto;
@@ -84,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView navAvatar;
     FirebaseFirestore db;
     private String rootPath;
+    NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,11 +114,11 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.profile_page, R.id.logout)
+                R.id.profile_page, R.id.logout, R.id.global_page)
                 .setDrawerLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -278,4 +278,7 @@ public class MainActivity extends AppCompatActivity {
         return rootPath;
     }
 
+    public NavigationView getNavigationView() {
+        return navigationView;
+    }
 }

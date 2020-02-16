@@ -32,7 +32,15 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/global_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:scrollbars="vertical" />
 
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Hi" />
 
 </LinearLayout>

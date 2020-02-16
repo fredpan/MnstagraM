@@ -52,6 +52,9 @@
             android:name=".fragment.Profile"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".fragment.Global"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait" />
         <activity
