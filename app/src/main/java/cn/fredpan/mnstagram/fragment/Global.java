@@ -29,6 +29,7 @@
 
 package cn.fredpan.mnstagram.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,14 +45,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
+import cn.fredpan.mnstagram.model.Updatable;
 
-public class Global extends Fragment {
+public class Global extends Fragment implements Updatable<Picture> {
 
     FirebaseFirestore userDb;
     RecyclerView recyclerView;
@@ -100,4 +103,19 @@ public class Global extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        ((MainActivity) getActivity()).setCurrentFragment(this);
+    }
+
+    @Override
+    public List<Picture> getList() {
+        return pic;
+    }
+
+    @Override
+    public void update() {
+        mAdapter.notifyDataSetChanged();
+    }
 }
