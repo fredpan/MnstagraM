@@ -308,7 +308,10 @@ public class MainActivity extends AppCompatActivity {
                             });
                 } else {
                     String input = customHashtag.getText().toString();
-                    String[] result = input.split(" ");
+                    String[] result = input.split(",");
+                    for (int i = 0; i < result.length; i++) {
+                        result[i] = result[i].trim();
+                    }
                     hashtag.addAll(Arrays.asList(result));
                     uploadImg(hashtag);
                     builder.dismiss();
@@ -450,18 +453,6 @@ public class MainActivity extends AppCompatActivity {
             root.mkdirs();
         }
         rootPath = root.getAbsolutePath();
-
-//        File pics = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/pics");
-//        if (!pics.exists()) {
-//            pics.mkdirs();
-//        }
-//        picsPath = pics.getAbsolutePath();
-//
-//        File thumbnails = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid() + "/thumbnails");
-//        if (!thumbnails.exists()) {
-//            thumbnails.mkdirs();
-//        }
-//        thumbnailsPath = thumbnails.getAbsolutePath();
     }
 
     private void retrieveCurrentLoginUserDataFromDb() {

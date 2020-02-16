@@ -32,9 +32,11 @@ package cn.fredpan.mnstagram.pic;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,6 +50,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -75,6 +78,7 @@ import cn.fredpan.mnstagram.model.CommentDto;
 import cn.fredpan.mnstagram.model.Picture;
 import cn.fredpan.mnstagram.model.PictureDto;
 import cn.fredpan.mnstagram.model.User;
+import cn.fredpan.mnstagram.model.UserDto;
 
 public class PicDetailDisplay extends AppCompatActivity {
 
@@ -83,6 +87,7 @@ public class PicDetailDisplay extends AppCompatActivity {
     private StorageReference picStorage;
     private User user;
     ImageView deletePicBtn;
+    private String rootPath;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,11 +112,11 @@ public class PicDetailDisplay extends AppCompatActivity {
             PictureDto pictureDto = (PictureDto) getIntent().getSerializableExtra("pictureDto"); //Obtaining data
             picture = new Picture(pictureDto, BitmapFactory.decodeFile(path));
             user = (User) getIntent().getSerializableExtra("user");
-            loadAvatarAndInit(getExternalFilesDir(Environment.DIRECTORY_PICTURES).getPath());
+            initFolders();
+            loadAvatarAndInit();
         }
         assert picture != null;
         toolbar.setTitle(user.getUsername() + "'s post");
-        displayInfo();
         enablePicDelete();
     }
 
@@ -204,7 +209,7 @@ public class PicDetailDisplay extends AppCompatActivity {
         final TextView hashtags = findViewById(R.id.hashtags);
         String hashtagStr = "";
         for (String hashtag : picture.getHashtags()) {
-            hashtagStr += hashtag + " ";
+            hashtagStr += "#" + hashtag + " ";
         }
         hashtags.setText(hashtagStr);
 
@@ -213,6 +218,8 @@ public class PicDetailDisplay extends AppCompatActivity {
         final EditText newComment = findViewById(R.id.new_comment);
 
         final Button submitComment = findViewById(R.id.submit_comment);
+
+        final TextView noCommentHint = findViewById(R.id.no_comment_hint);
 
         final List<Comment> commentList = new ArrayList<>();
 
@@ -226,22 +233,71 @@ public class PicDetailDisplay extends AppCompatActivity {
                 super.onChanged();
                 Collections.sort(commentList);
                 Collections.reverse(commentList);
+                if (commentList.size() == 0) {
+                    noCommentHint.setVisibility(View.VISIBLE);
+                    comments.setVisibility(View.GONE);
+                } else {
+                    noCommentHint.setVisibility(View.GONE);
+                    comments.setVisibility(View.VISIBLE);
+                }
             }
         });
+
+        //get all comments for the current pic
         db.collection("comments").whereEqualTo("pid", picture.getPid())
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+            public void onComplete(@NonNull final Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        CommentDto commentDto = document.toObject(CommentDto.class);
-                        commentList.add(new Comment(user, picture, commentDto.getComment(), new Date(commentDto.getTimeStamp())));
-                        mAdapter.notifyDataSetChanged();
+                    for (final QueryDocumentSnapshot document : task.getResult()) {
+                        final CommentDto commentDto = document.toObject(CommentDto.class);
+                        final String uid = commentDto.getUid();
+                        db.collection("users").document(uid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot documentSnapshot = task.getResult();
+                                    UserDto userDto = documentSnapshot.toObject(UserDto.class);
+                                    Bitmap tempBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.avatar);
+                                    final User currOwner = userDto.generateUser(tempBitmap, uid, "SECURED");
+
+                                    //load avatar
+                                    File root = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + currOwner.getUid());
+                                    if (!root.exists()) {
+                                        root.mkdirs();
+                                    }
+                                    String rootPath = root.getAbsolutePath();
+                                    final File img = new File(rootPath, "displayPic.jpg");
+                                    if (!img.exists()) {
+                                        //load avatar
+                                        String path = "pictures/" + currOwner.getUid() + "/" + "displayPic.jpg";
+                                        StorageReference displayPicRef = picStorage.child(path);
+                                        displayPicRef.getFile(img)
+                                                .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                                                    @Override
+                                                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                                        currOwner.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
+                                                        mAdapter.notifyDataSetChanged();
+                                                    }
+                                                });
+                                    } else {
+                                        currOwner.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
+                                        mAdapter.notifyDataSetChanged();
+                                    }
+
+                                    commentList.add(new Comment(currOwner, picture, commentDto.getComment(), new Date(commentDto.getTimeStamp())));
+                                    mAdapter.notifyDataSetChanged();
+                                } else {
+                                    Toast.makeText(PicDetailDisplay.this, getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
+                                    Log.w("PicDetailComment: ", "Error getting user for comment.", task.getException());
+                                }
+                            }
+                        });
                     }
                 }
             }
         });
-        //get all comments for the current pic
+
 
         mAdapter.notifyDataSetChanged();
 
@@ -274,7 +330,15 @@ public class PicDetailDisplay extends AppCompatActivity {
         });
     }
 
-    private void loadAvatarAndInit(String rootPath) {
+    private void initFolders() {
+        File root = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + user.getUid());
+        if (!root.exists()) {
+            root.mkdirs();
+        }
+        rootPath = root.getAbsolutePath();
+    }
+
+    private void loadAvatarAndInit() {
         final File img = new File(rootPath, "displayPic.jpg");
         if (!img.exists()) {
             //load avatar
@@ -285,12 +349,12 @@ public class PicDetailDisplay extends AppCompatActivity {
                         @Override
                         public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                             user.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
-//                            onAllInfoRetrived();
+                            displayInfo();
                         }
                     });
         } else {
             user.setAvatar(BitmapFactory.decodeFile(img.getAbsolutePath()));
-//            onAllInfoRetrived();
+            displayInfo();
         }
     }
 
@@ -325,7 +389,7 @@ public class PicDetailDisplay extends AppCompatActivity {
             // - replace the contents of the view with that element
             holder.username.setText(mComments.get(position).getUser().getUsername());
             holder.comment.setText(mComments.get(position).getComment());
-
+            holder.avatar.setImageBitmap(mComments.get(position).getUser().getAvatar());
         }
 
         // Return the size of your dataset (invoked by the layout manager)
@@ -341,11 +405,13 @@ public class PicDetailDisplay extends AppCompatActivity {
             // each data item is just a string in this case
             public TextView username;
             public TextView comment;
+            public ImageView avatar;
 
             public MyViewHolder(View v) {
                 super(v);
                 username = itemView.findViewById(R.id.comment_username);
                 comment = itemView.findViewById(R.id.comment_comment);
+                avatar = itemView.findViewById(R.id.comment_avatar);
             }
         }
     }
