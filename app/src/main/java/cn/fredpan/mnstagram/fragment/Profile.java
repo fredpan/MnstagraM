@@ -78,7 +78,7 @@ public class Profile extends Fragment implements Updatable<Picture> {
 
     FirebaseFirestore db;
     private StorageReference picStorage;
-    private ProfilePagePicListAdapter mAdapter;
+    private PicListAdapter mAdapter;
 
     private List<Picture> pic;
 
@@ -128,7 +128,7 @@ public class Profile extends Fragment implements Updatable<Picture> {
 //        recyclerView.setHasFixedSize(true);
 
         // specify an adapter (see also next example)
-        mAdapter = new ProfilePagePicListAdapter(pic, getActivity(), db, user);
+        mAdapter = new PicListAdapter(pic, getActivity(), db, user, R.layout.pic_list_item);
         recyclerView.setAdapter(mAdapter);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
         recyclerView.setLayoutManager(layoutManager);

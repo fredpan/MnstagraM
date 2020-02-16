@@ -49,33 +49,35 @@ import cn.fredpan.mnstagram.model.PictureDto;
 import cn.fredpan.mnstagram.model.User;
 import cn.fredpan.mnstagram.pic.PicDetailDisplay;
 
-class GlobalPagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListAdapter.MyViewHolder> {
-    FirebaseFirestore userDb;
-    User user;
+class PicListAdapter extends RecyclerView.Adapter<PicListAdapter.MyViewHolder> {
     private List<Picture> mPics;
     private Activity activity;
+    FirebaseFirestore userDb;
+    User user;
+    int majorLayout;
 
-    public GlobalPagePicListAdapter(List<Picture> mPics, Activity activity, FirebaseFirestore userDb, User user) {
+    public PicListAdapter(List<Picture> mPics, Activity activity, FirebaseFirestore userDb, User user, int majorLayout) {
         this.mPics = mPics;
         this.activity = activity;
         this.userDb = userDb;
         this.user = user;
+        this.majorLayout = majorLayout;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ProfilePagePicListAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
-                                                                     int viewType) {
+    public PicListAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
+                                                          int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.pic_list_item, parent, false);
-        ProfilePagePicListAdapter.MyViewHolder vh = new ProfilePagePicListAdapter.MyViewHolder(v);
+                .inflate(majorLayout, parent, false);
+        MyViewHolder vh = new MyViewHolder(v);
         return vh;
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(final ProfilePagePicListAdapter.MyViewHolder holder, final int position) {
+    public void onBindViewHolder(final MyViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         holder.imgView.setImageBitmap(mPics.get(position).getPic());
@@ -125,5 +127,6 @@ class GlobalPagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListAd
             imgView = itemView.findViewById(R.id.pic_item);
         }
     }
+
 
 }

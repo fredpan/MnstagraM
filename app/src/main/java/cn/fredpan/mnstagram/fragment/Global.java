@@ -30,17 +30,28 @@
 package cn.fredpan.mnstagram.fragment;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.label.FirebaseVisionImageLabeler;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +63,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
+import cn.fredpan.mnstagram.model.PictureDto;
 import cn.fredpan.mnstagram.model.Updatable;
 
 public class Global extends Fragment implements Updatable<Picture> {
@@ -63,7 +75,7 @@ public class Global extends Fragment implements Updatable<Picture> {
     private StorageReference picStorage;
     private FirebaseVisionImageLabeler labeler;
     private String rootPath;
-    private GlobalPagePicListAdapter mAdapter;
+    private PicListAdapter mAdapter;
     private List<Picture> pic;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -85,8 +97,8 @@ public class Global extends Fragment implements Updatable<Picture> {
         ((MainActivity) getActivity()).getNavigationView().getHeaderView(0);
 
         pic = new ArrayList<>();
-
-        mAdapter = new GlobalPagePicListAdapter(pic, getActivity(), db, ((MainActivity) getActivity()).getUser());
+        obtainPics();
+        mAdapter = new PicListAdapter(pic, getActivity(), db, ((MainActivity) getActivity()).getUser(), R.layout.global_pic_list_item);
         recyclerView.setAdapter(mAdapter);
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 1);
         recyclerView.setLayoutManager(layoutManager);
@@ -101,6 +113,46 @@ public class Global extends Fragment implements Updatable<Picture> {
         mAdapter.notifyDataSetChanged();
 
         return rootView;
+    }
+
+    private void obtainPics() {
+        final List<PictureDto> refs = new ArrayList<>();
+        db.collection("photos")
+                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    // get all ref
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        PictureDto pictureDto = document.toObject(PictureDto.class);
+                        pictureDto.setPid(document.getId());
+                        refs.add(pictureDto);
+                    }
+                    for (final PictureDto ref : refs) {
+                        File file = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref.getStorageRef());
+                        if (file.exists()) {
+                            pic.add(new Picture(ref, BitmapFactory.decodeFile(file.getAbsolutePath())));
+                            mAdapter.notifyDataSetChanged();
+                        } else {
+                            final File localFile = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref.getStorageRef());
+                            StorageReference picRef = picStorage.child("pictures/" + ref.getStorageRef());
+                            picRef.getFile(localFile)
+                                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                                        @Override
+                                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                            pic.add(new Picture(ref, BitmapFactory.decodeFile(localFile.getAbsolutePath())));
+                                            mAdapter.notifyDataSetChanged();
+                                        }
+                                    });
+                        }
+                    }
+
+                } else {
+                    Toast.makeText(getActivity(), getString(R.string.failed_retrieving_users_collection), Toast.LENGTH_LONG).show();
+                    Log.w("LOGIN: ", "Error getting pictures, Please check your internet connection.", task.getException());
+                }
+            }
+        });
     }
 
     @Override
