@@ -45,7 +45,7 @@
         android:layout_marginLeft="60dp"
         android:layout_marginRight="60dp"
         android:layout_weight="1"
-        android:background="@color/colorPrimary"
+        android:background="#ffffff"
         android:orientation="vertical">
 
         <LinearLayout
@@ -129,7 +129,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_weight="1"
-                    android:background="@color/colorAccent"
+                    android:background="@color/colorPrimary"
                     android:text="Post" />
             </LinearLayout>
         </LinearLayout>

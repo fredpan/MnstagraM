@@ -525,6 +525,9 @@ public class MainActivity extends AppCompatActivity {
                 // Create the AlertDialog object and return it
                 AlertDialog logoutConfirm = builder.create();
                 logoutConfirm.show();
+                logoutConfirm.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
+                logoutConfirm.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
+
                 return true;
             }
         });
