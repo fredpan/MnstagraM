@@ -47,6 +47,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -56,6 +58,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -147,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         //Since this activity and its fragment requires info from db, the init will continue after all the necessary info is ready. See onAllInfoRetrieved for continues initialization.
 
         // prepare all dbs
-        mAuth = (mAuth == null)? FirebaseAuth.getInstance() : mAuth;
+        mAuth = (mAuth == null) ? FirebaseAuth.getInstance() : mAuth;
         db = (db == null) ? FirebaseFirestore.getInstance() : db;
         picStorage = (picStorage == null) ? FirebaseStorage.getInstance().getReference() : picStorage;
         labeler = (labeler == null) ? FirebaseVision.getInstance().getCloudImageLabeler() : labeler;
@@ -261,15 +264,67 @@ public class MainActivity extends AppCompatActivity {
 
         customHashtag = builder.findViewById(R.id.custom_hashtag);
 
+        final TextView customHashtagCtr = builder.findViewById(R.id.custom_hashtag_ctr);
+
+        customHashtag.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.toString().length() == 120) {
+                    customHashtagCtr.setTextColor(Color.RED);
+                } else {
+                    customHashtagCtr.setTextColor(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String currentText = editable.toString();
+                int currentLength = currentText.length();
+                customHashtagCtr.setText(currentLength + "/120");
+            }
+        });
+
         newPicCaption = builder.findViewById(R.id.new_pic_caption);
+
+        final TextView newPicCaptionCtr = builder.findViewById(R.id.new_pic_caption_ctr);
+
+        newPicCaption.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.toString().length() == 120) {
+                    newPicCaptionCtr.setTextColor(Color.RED);
+                } else {
+                    newPicCaptionCtr.setTextColor(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String currentText = editable.toString();
+                int currentLength = currentText.length();
+                newPicCaptionCtr.setText(currentLength + "/120");
+            }
+        });
+
+        final LinearLayout hashtagsBlock = builder.findViewById(R.id.hashtags_block);
 
         autoHashtags.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    customHashtag.setVisibility(View.INVISIBLE);
+                    hashtagsBlock.setVisibility(View.GONE);
                 } else {
-                    customHashtag.setVisibility(View.VISIBLE);
+                    hashtagsBlock.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -314,7 +369,11 @@ public class MainActivity extends AppCompatActivity {
                     String input = customHashtag.getText().toString();
                     String[] result = input.split(",");
                     for (int i = 0; i < result.length; i++) {
-                        result[i] = result[i].trim();
+                        String temp = result[i].trim();
+                        if (temp.length() > 0 && temp.charAt(0) == '#') {
+                            temp = temp.substring(1);
+                        }
+                        result[i] = temp;
                     }
                     hashtag.addAll(Arrays.asList(result));
                     uploadImg(hashtag);
@@ -411,10 +470,6 @@ public class MainActivity extends AppCompatActivity {
         canvas.drawColor(Color.argb(100, 193, 193, 193));
         return bmOverlay;
     }
-
-
-
-
 
 
     private void onAllInfoRetrived() {
@@ -558,7 +613,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void signOut(){
+    private void signOut() {
         FirebaseAuth.getInstance().signOut();
         Intent loginActivity = new Intent(MainActivity.this, Login.class);
         MainActivity.this.startActivity(loginActivity);

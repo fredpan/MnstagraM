@@ -78,7 +78,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Hashtags:"
-                    android:textStyle="italic" />
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="3dp"
+                    android:textStyle="italic|bold" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -93,6 +95,14 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/caption_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="3dp"
+                android:text="Caption:"
+                android:textStyle="italic|bold" />
 
             <TextView
                 android:id="@+id/caption_display"
@@ -100,13 +110,20 @@
                 android:layout_height="wrap_content" />
 
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="3dp"
+                android:text="Comments:"
+                android:textStyle="italic|bold" />
+            <TextView
                 android:id="@+id/no_comment_hint"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_gravity="center"
                 android:layout_weight="1"
                 android:text="No comment... Be the first one!"
-                android:textStyle="italic|bold"
+                android:textStyle="italic"
                 android:visibility="gone" />
             <androidx.recyclerview.widget.RecyclerView
 

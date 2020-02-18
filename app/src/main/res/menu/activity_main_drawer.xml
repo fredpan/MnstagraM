@@ -38,7 +38,7 @@
             android:title="Profile" />
         <item
             android:id="@+id/global_page"
-            android:icon="@drawable/ic_contact_24"
+            android:icon="@drawable/ic_menu_gallery"
             android:title="Global" />
     </group>
 

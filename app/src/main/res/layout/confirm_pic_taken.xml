@@ -53,16 +53,24 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <EditText
                 android:id="@+id/new_pic_caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:lines="3"
+                android:lines="1"
                 android:maxLength="120"
-                android:maxLines="3"
                 android:hint="Caption" />
+
+            <TextView
+                android:id="@+id/new_pic_caption_ctr"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="0/120"
+                android:textAlignment="viewEnd"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -95,14 +103,42 @@
                         android:checked="true" />
                 </LinearLayout>
 
+                <LinearLayout
+                    android:id="@+id/hashtags_block"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
                 <EditText
                     android:id="@+id/custom_hashtag"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Hashtags:\nSeparate by comma"
-                    android:lines="3"
-                    android:maxLength="120"
-                    android:visibility="invisible" />
+                    android:hint="Hashtags"
+                    android:lines="1"
+                    android:maxLength="120" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="hint: separate by comma. E.g., hello, world"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/custom_hashtag_ctr"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="0/120"
+                            android:textAlignment="viewEnd"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
             </LinearLayout>
 
             <LinearLayout

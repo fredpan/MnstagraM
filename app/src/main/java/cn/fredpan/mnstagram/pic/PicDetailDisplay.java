@@ -209,8 +209,15 @@ public class PicDetailDisplay extends AppCompatActivity {
         ImageView imageView = findViewById(R.id.pic_display);
         imageView.setImageBitmap(picture.getPic());
 
+        final TextView captionTitle = findViewById(R.id.caption_title);
         final TextView caption = findViewById(R.id.caption_display);
-        caption.setText(picture.getCaption());
+        if (picture.getCaption().equals("")) {
+            captionTitle.setVisibility(View.GONE);
+            caption.setVisibility(View.GONE);
+        } else {
+            caption.setText(picture.getCaption());
+        }
+
 
         final TextView hashtags = findViewById(R.id.hashtags);
         String hashtagStr = "";
