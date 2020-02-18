@@ -53,7 +53,7 @@
     <string name="error_password_length_too_short">Password has at least 6 characters.</string>
     <string name="failed_read_write_image">Failed to save image. Please open read/write file permission.</string>
     <string name="error_empty_avatar">Please take and crop the avatar.</string>
-    <string name="hint_enter_your_comment">Please enter your comment!</string>
+    <string name="hint_enter_your_comment">Enter comment…</string>
 
 
 </resources>

@@ -29,18 +29,21 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/confirm_pic_taken"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="330dp"
+    android:layout_height="wrap_content"
     android:gravity="center_horizontal"
-    android:orientation="vertical">
+    android:layout_margin="11dp"
+    android:background="#ffffff"
+    android:orientation="vertical"
+    android:padding="6dp">
 
     <ImageView
         android:id="@+id/confirm_pic_taken_pic"
-        android:layout_width="250dp"
-        android:layout_height="250dp" />
+        android:layout_width="300dp"
+        android:layout_height="300dp" />
 
     <LinearLayout
-        android:layout_width="250dp"
+        android:layout_width="300dp"
         android:layout_height="0dp"
         android:layout_marginLeft="60dp"
         android:layout_marginRight="60dp"
@@ -57,7 +60,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:lines="3"
-                android:maxLength="10"
+                android:maxLength="120"
                 android:maxLines="3"
                 android:hint="Caption" />
         </LinearLayout>
@@ -98,6 +101,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Hashtags:\nSeparate by comma"
                     android:lines="3"
+                    android:maxLength="120"
                     android:visibility="invisible" />
             </LinearLayout>
 

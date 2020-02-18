@@ -36,15 +36,26 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -64,13 +75,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Comment;
@@ -140,8 +144,10 @@ public class PicDetailDisplay extends AppCompatActivity {
                                 }
                             });
                     // Create the AlertDialog object and return it
-                    AlertDialog logoutConfirm = builder.create();
-                    logoutConfirm.show();
+                    AlertDialog deletePic = builder.create();
+                    deletePic.show();
+                    deletePic.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(PicDetailDisplay.this, R.color.colorPrimary));
+                    deletePic.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(PicDetailDisplay.this, R.color.colorPrimary));
                 }
             });
         }
@@ -208,10 +214,39 @@ public class PicDetailDisplay extends AppCompatActivity {
 
         final TextView hashtags = findViewById(R.id.hashtags);
         String hashtagStr = "";
-        for (String hashtag : picture.getHashtags()) {
-            hashtagStr += "#" + hashtag + " ";
+
+        if (picture.getHashtags().size() <= 5) {
+            for (String hashtag : picture.getHashtags()) {
+                hashtagStr += "#" + hashtag + " ";
+            }
+            hashtags.setText(hashtagStr);
+        } else {
+            for (String hashtag : picture.getHashtags().subList(0, 5)) {//only display first five tags
+                hashtagStr += "#" + hashtag + " ";
+            }
+            hashtags.setText(Html.fromHtml(hashtagStr + "<font color=#3F51B5><i> more...</i></font>"));
+            final boolean[] isAllShown = {false};
+            hashtags.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (isAllShown[0]) {//display
+                        isAllShown[0] = false;
+                        StringBuilder completeHashTagStr = new StringBuilder();
+                        for (String hashtag : picture.getHashtags()) {
+                            completeHashTagStr.append("#").append(hashtag).append(" ");
+                        }
+                        hashtags.setText(completeHashTagStr.toString());
+                    } else {//not display
+                        isAllShown[0] = true;
+                        String abbrHashtagStr = "";
+                        for (String hashtag : picture.getHashtags().subList(0, 5)) {//only display first five tags
+                            abbrHashtagStr += "#" + hashtag + " ";
+                        }
+                        hashtags.setText(Html.fromHtml(abbrHashtagStr + "<font color=#3F51B5><i> more...</i></font>"));
+                    }
+                }
+            });
         }
-        hashtags.setText(hashtagStr);
 
         final RecyclerView comments = findViewById(R.id.comments_list);
 
@@ -308,24 +343,37 @@ public class PicDetailDisplay extends AppCompatActivity {
                 final Toast postingCommentToast = Toast.makeText(PicDetailDisplay.this, "Posting comment", Toast.LENGTH_LONG);
                 postingCommentToast.show();
                 Date time = new Date();
-                final Comment comment = new Comment(user, picture, newComment.getText().toString(), time);
-                db.collection("comments/").add(new CommentDto(comment, picture.getPid())).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentReference> task) {
-                        if (task.isSuccessful()) {
-                            // update the UI
-                            // clean the UI
-                            postingCommentToast.cancel();
-                            Toast.makeText(PicDetailDisplay.this, "Comment posted", Toast.LENGTH_LONG).show();
-                            // clean the edit text
-                            newComment.setText("");
-                            newComment.setHint(R.string.hint_enter_your_comment);
-                            // update comments list
-                            commentList.add(comment);
-                            mAdapter.notifyDataSetChanged();
+                if (newComment.getText().toString().equals("")) {
+                    newComment.setError("Please enter your comment!");
+                } else {
+                    final Comment comment = new Comment(user, picture, newComment.getText().toString(), time);
+                    newComment.setText("");
+                    newComment.setHint(R.string.hint_enter_your_comment);
+                    db.collection("comments/").add(new CommentDto(comment, picture.getPid())).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentReference> task) {
+                            if (task.isSuccessful()) {
+                                // update the UI
+                                // clean the UI
+                                postingCommentToast.cancel();
+                                Toast.makeText(PicDetailDisplay.this, "Comment posted", Toast.LENGTH_LONG).show();
+                                // clean the edit text
+                                // update comments list
+                                commentList.add(comment);
+                                mAdapter.notifyDataSetChanged();
+
+                                //hide the keyboard
+                                InputMethodManager imm = (InputMethodManager) PicDetailDisplay.this.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                                View view = PicDetailDisplay.this.getCurrentFocus();
+                                if (view == null) {
+                                    view = new View(PicDetailDisplay.this);
+                                }
+                                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                            }
                         }
-                    }
-                });
+                    });
+                }
+
             }
         });
     }
@@ -415,5 +463,6 @@ public class PicDetailDisplay extends AppCompatActivity {
             }
         }
     }
+
 
 }

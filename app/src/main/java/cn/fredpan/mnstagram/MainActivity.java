@@ -60,6 +60,21 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -89,18 +104,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import cn.fredpan.mnstagram.auth.Login;
 import cn.fredpan.mnstagram.model.Picture;
 import cn.fredpan.mnstagram.model.PictureDto;
@@ -158,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             retrieveCurrentLoginUserDataFromDb();
         }
+//        setMyFragment(new Profile());
     }
 
 
@@ -584,5 +588,18 @@ public class MainActivity extends AppCompatActivity {
 
     public void setCurrentFragment(Fragment currentFragment) {
         this.currentFragment = currentFragment;
+    }
+
+    private void setMyFragment(Fragment fr) {
+        try {
+            FragmentManager fm = getSupportFragmentManager();
+            if (fr != null) {
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.replace(R.id.nav_host_fragment, fr, null);
+                ft.commitAllowingStateLoss();
+            }
+        } catch (IllegalStateException e) {
+            Log.d("OPEN SPECIFIC FRAGMENT:", "ISE setting main view " + e.getMessage());
+        }
     }
 }

@@ -39,6 +39,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -56,10 +61,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
@@ -129,6 +130,11 @@ public class Global extends Fragment implements Updatable<Picture> {
                         refs.add(pictureDto);
                     }
                     for (final PictureDto ref : refs) {
+                        String subfolderName = ref.getStorageRef().split("/")[0];
+                        File root = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + subfolderName);
+                        if (!root.exists()) {
+                            root.mkdirs();
+                        }
                         File file = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref.getStorageRef());
                         if (file.exists()) {
                             pic.add(new Picture(ref, BitmapFactory.decodeFile(file.getAbsolutePath())));
