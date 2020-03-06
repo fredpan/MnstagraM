@@ -31,21 +31,28 @@ package cn.fredpan.mnstagram.model;
 
 import android.graphics.Bitmap;
 
+import java.util.List;
+
 public class Picture implements Comparable<Picture> {
 
     private Bitmap pic;
     private String uid;
+    private String pid;
     private String storageRef;
     private String timestamp;
+    private String caption;
+    List<String> hashtags;
 
     public Picture() {
     }
 
-    public Picture(Bitmap pic, String uid, String storageRef, String timestamp) {
+    public Picture(Bitmap pic, String uid, String storageRef, String timestamp, String pid, List<String> hashtags) {
         this.pic = pic;
         this.uid = uid;
         this.storageRef = storageRef;
         this.timestamp = timestamp;
+        this.pid = pid;
+        this.hashtags = hashtags;
     }
 
     public Picture(PictureDto pictureDto, Bitmap pic) {
@@ -53,6 +60,17 @@ public class Picture implements Comparable<Picture> {
         this.uid = pictureDto.getUid();
         this.storageRef = pictureDto.getStorageRef();
         this.timestamp = pictureDto.getTimestamp();
+        this.caption = pictureDto.getCaption();
+        this.pid = pictureDto.getPid();
+        this.hashtags = pictureDto.getHashtags();
+    }
+
+    public List<String> getHashtags() {
+        return hashtags;
+    }
+
+    public void setHashtags(List<String> hashtags) {
+        this.hashtags = hashtags;
     }
 
     public Bitmap getPic() {
@@ -93,5 +111,21 @@ public class Picture implements Comparable<Picture> {
             return 0;
         }
         return Integer.valueOf(picture.getTimestamp()).compareTo(Integer.valueOf(getTimestamp()));
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
+    }
+
+    public String getPid() {
+        return pid;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
     }
 }

@@ -36,34 +36,41 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
-import androidx.recyclerview.widget.RecyclerView;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
+import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
 import cn.fredpan.mnstagram.model.PictureDto;
-import cn.fredpan.mnstagram.pic.ImgHelper;
+import cn.fredpan.mnstagram.model.User;
 import cn.fredpan.mnstagram.pic.PicDetailDisplay;
 
-class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListAdapter.MyViewHolder> {
+class PicListAdapter extends RecyclerView.Adapter<PicListAdapter.MyViewHolder> {
     private List<Picture> mPics;
     private Activity activity;
+    FirebaseFirestore userDb;
+    User user;
+    int majorLayout;
 
-    // Provide a suitable constructor (depends on the kind of dataset)
-    public ProfilePagePicListAdapter(Activity activity, List<Picture> mPics) {
-        this.activity = activity;
+    public PicListAdapter(List<Picture> mPics, Activity activity, FirebaseFirestore userDb, User user, int majorLayout) {
         this.mPics = mPics;
+        this.activity = activity;
+        this.userDb = userDb;
+        this.user = user;
+        this.majorLayout = majorLayout;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ProfilePagePicListAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
-                                                                     int viewType) {
+    public PicListAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
+                                                          int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.pic_list_item, parent, false);
+                .inflate(majorLayout, parent, false);
         MyViewHolder vh = new MyViewHolder(v);
         return vh;
     }
@@ -77,22 +84,29 @@ class ProfilePagePicListAdapter extends RecyclerView.Adapter<ProfilePagePicListA
         holder.imgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ImgHelper.displayPreviewImg(activity, mPics.get(position).getPic());
+                if (mPics.get(position).getPid() != null) {// the temp img has uid == null
+                    Intent picDetailActivity = new Intent(activity.getApplicationContext(), PicDetailDisplay.class);
+                    String path = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + mPics.get(position).getStorageRef();
+                    picDetailActivity.putExtra("path", path);
+                    Picture picture = mPics.get(position);
+                    PictureDto pictureDto = new PictureDto(picture.getUid(), picture.getStorageRef(), picture.getTimestamp(), picture.getCaption(), picture.getHashtags());
+                    pictureDto.setPid(picture.getPid());
+                    picDetailActivity.putExtra("pictureDto", pictureDto);
+                    User copyUser = new User();
+                    copyUser.setUid(user.getUid());
+                    copyUser.setAvatar(null);
+                    copyUser.setBio(user.getBio());
+                    copyUser.setEmail(user.getEmail());
+                    copyUser.setUsername(user.getUsername());
+                    picDetailActivity.putExtra("user", copyUser);
+                    activity.startActivity(picDetailActivity);
+                } else {
+                    Toast.makeText(activity, "Picture is posting. Please wait...", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
-        holder.imgView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                Intent picDetailActivity = new Intent(activity.getApplicationContext(), PicDetailDisplay.class);
-                String path = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + mPics.get(position).getStorageRef();
-                picDetailActivity.putExtra("path", path);
-                Picture picture = mPics.get(position);
-                PictureDto pictureDto = new PictureDto(picture.getUid(), picture.getStorageRef(), picture.getTimestamp());
-                picDetailActivity.putExtra("pictureDto", pictureDto);
-                activity.startActivity(picDetailActivity);
-                return true;
-            }
-        });
+
     }
 
     // Return the size of your dataset (invoked by the layout manager)

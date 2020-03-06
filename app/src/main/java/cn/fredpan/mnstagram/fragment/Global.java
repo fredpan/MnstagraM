@@ -37,16 +37,22 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.label.FirebaseVisionImageLabeler;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StorageReference;
 
@@ -55,82 +61,47 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import cn.fredpan.mnstagram.MainActivity;
 import cn.fredpan.mnstagram.R;
 import cn.fredpan.mnstagram.model.Picture;
 import cn.fredpan.mnstagram.model.PictureDto;
 import cn.fredpan.mnstagram.model.Updatable;
-import cn.fredpan.mnstagram.model.User;
-import cn.fredpan.mnstagram.pic.ImgHelper;
 
-public class Profile extends Fragment implements Updatable<Picture> {
+public class Global extends Fragment implements Updatable<Picture> {
 
     FirebaseFirestore userDb;
-    TextView usernameView;
-    TextView bioView;
-    ImageView avatarView;
-    User user;
     RecyclerView recyclerView;
-
     FirebaseFirestore db;
+    FloatingActionButton takeNewPicBtn;
     private StorageReference picStorage;
+    private FirebaseVisionImageLabeler labeler;
+    private String rootPath;
     private PicListAdapter mAdapter;
-
     private List<Picture> pic;
-
-
-    Updatable<Picture> callback;
-
-    public void setUpdatable(Updatable callback) {
-        this.callback = callback;
-    }
-
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         ViewGroup rootView = (ViewGroup) inflater.inflate(
-                R.layout.profile, container, false);
+                R.layout.global, container, false);
 
         userDb = (userDb == null) ? FirebaseFirestore.getInstance() : userDb;
-
+        labeler = (labeler == null) ? FirebaseVision.getInstance().getCloudImageLabeler() : labeler;
 
         //basic components
-        usernameView = rootView.findViewById(R.id.username);
-        bioView = rootView.findViewById(R.id.bio);
-        avatarView = rootView.findViewById(R.id.profile_avatar);
-        recyclerView = rootView.findViewById(R.id.my_recycler_view);
+        recyclerView = rootView.findViewById(R.id.global_recycler_view);
+        takeNewPicBtn = rootView.findViewById(R.id.take_new_img);
 
-        user = ((MainActivity) getActivity()).getUser();
         db = ((MainActivity) getActivity()).getDb();
         picStorage = ((MainActivity) getActivity()).getPicStorage();
+        rootPath = (((MainActivity) getActivity()).getRootPath());
 
-
-        initPicLists();
-
-        displayUserInfo();
-
-        return rootView;
-    }
-
-
-
-
-
-    private void initPicLists() {
+        ((MainActivity) getActivity()).getNavigationView().getHeaderView(0);
 
         pic = new ArrayList<>();
         obtainPics();
-        //Changes in content do not change the layout size of the RecyclerView
-//        recyclerView.setHasFixedSize(true);
-
-        // specify an adapter (see also next example)
-        mAdapter = new PicListAdapter(pic, getActivity(), db, user, R.layout.pic_list_item);
+        mAdapter = new PicListAdapter(pic, getActivity(), db, ((MainActivity) getActivity()).getUser(), R.layout.global_pic_list_item);
         recyclerView.setAdapter(mAdapter);
-        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
+        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 1);
         recyclerView.setLayoutManager(layoutManager);
         mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -141,11 +112,13 @@ public class Profile extends Fragment implements Updatable<Picture> {
         });
 
         mAdapter.notifyDataSetChanged();
+
+        return rootView;
     }
 
     private void obtainPics() {
         final List<PictureDto> refs = new ArrayList<>();
-        db.collection("photos").whereEqualTo("uid", user.getUid())
+        db.collection("photos")
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -157,6 +130,11 @@ public class Profile extends Fragment implements Updatable<Picture> {
                         refs.add(pictureDto);
                     }
                     for (final PictureDto ref : refs) {
+                        String subfolderName = ref.getStorageRef().split("/")[0];
+                        File root = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + subfolderName);
+                        if (!root.exists()) {
+                            root.mkdirs();
+                        }
                         File file = new File(getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES) + "/" + ref.getStorageRef());
                         if (file.exists()) {
                             pic.add(new Picture(ref, BitmapFactory.decodeFile(file.getAbsolutePath())));
@@ -183,18 +161,11 @@ public class Profile extends Fragment implements Updatable<Picture> {
         });
     }
 
-    private void displayUserInfo() {
-        usernameView.setText(user.getUsername());
-        bioView.setText(user.getBio());
-        avatarView.setImageBitmap(user.getAvatar());
-        avatarView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ImgHelper.displayPreviewImg(getActivity(), user.getAvatar());
-            }
-        });
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        ((MainActivity) getActivity()).setCurrentFragment(this);
     }
-
 
     @Override
     public List<Picture> getList() {
@@ -204,11 +175,5 @@ public class Profile extends Fragment implements Updatable<Picture> {
     @Override
     public void update() {
         mAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        ((MainActivity) getActivity()).setCurrentFragment(this);
     }
 }

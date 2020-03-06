@@ -31,7 +31,6 @@ package cn.fredpan.mnstagram.pic;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -43,13 +42,13 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import androidx.fragment.app.Fragment;
-
 import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import androidx.fragment.app.Fragment;
 
 public class ImgHelper {
 
@@ -77,10 +76,10 @@ public class ImgHelper {
                 .start(activity);
     }
 
-    public static void cropPicWithFixedSize(Uri photoURI, Context context, Fragment fragment) {
+    public static void cropPicWithFixedSize(Uri photoURI, Activity context, Fragment fragment) {
         CropImage.activity(photoURI)
                 .setFixAspectRatio(true)
-                .start(context, fragment);
+                .start(context);
     }
 
     /**

@@ -27,8 +27,15 @@
   ~
   -->
 
-<resources>
-    <color name="colorPrimary">#957DFF</color>
-    <color name="colorPrimaryDark">#B997F3</color>
-    <color name="colorAccent">#BDD5FA</color>
-</resources>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/global_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

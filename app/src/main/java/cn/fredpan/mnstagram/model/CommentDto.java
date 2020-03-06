@@ -29,34 +29,27 @@
 
 package cn.fredpan.mnstagram.model;
 
-import java.io.Serializable;
-import java.util.List;
-
-public class PictureDto implements Serializable {
+public class CommentDto {
     private String uid;
-    private String storageRef;
-    private String timestamp;
-    private String caption;
+    private String comment;
+    private long timeStamp;
     private String pid;
-    private List<String> hashtags;
 
-    public PictureDto() {
-    }
-
-    public PictureDto(String uid, String storageRef, String timestamp, String caption, List<String> hashtags) {
+    public CommentDto(String uid, String comment, long timeStamp, String pid) {
         this.uid = uid;
-        this.storageRef = storageRef;
-        this.timestamp = timestamp;
-        this.caption = caption;
-        this.hashtags = hashtags;
+        this.comment = comment;
+        this.timeStamp = timeStamp;
+        this.pid = pid;
     }
 
-    public List<String> getHashtags() {
-        return hashtags;
+    public CommentDto(Comment comment, String pid) {
+        this.uid = comment.getUser().getUid();
+        this.comment = comment.getComment();
+        this.timeStamp = comment.getTimeStamp().getTime();
+        this.pid = pid;
     }
 
-    public void setHashtags(List<String> hashtags) {
-        this.hashtags = hashtags;
+    public CommentDto() {
     }
 
     public String getUid() {
@@ -67,28 +60,20 @@ public class PictureDto implements Serializable {
         this.uid = uid;
     }
 
-    public String getStorageRef() {
-        return storageRef;
+    public String getComment() {
+        return comment;
     }
 
-    public void setStorageRef(String storageRef) {
-        this.storageRef = storageRef;
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
-    public String getTimestamp() {
-        return timestamp;
+    public long getTimeStamp() {
+        return timeStamp;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getCaption() {
-        return caption;
-    }
-
-    public void setCaption(String caption) {
-        this.caption = caption;
+    public void setTimeStamp(long timeStamp) {
+        this.timeStamp = timeStamp;
     }
 
     public String getPid() {

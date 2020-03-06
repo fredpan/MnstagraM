@@ -27,8 +27,19 @@
   ~
   -->
 
-<resources>
-    <color name="colorPrimary">#957DFF</color>
-    <color name="colorPrimaryDark">#B997F3</color>
-    <color name="colorAccent">#BDD5FA</color>
-</resources>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="11dp"
+    android:gravity="center"
+    app:cardCornerRadius="11dp">
+
+    <ImageView
+        android:id="@+id/pic_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#646464"
+        android:scaleType="centerCrop" />
+</androidx.cardview.widget.CardView>
